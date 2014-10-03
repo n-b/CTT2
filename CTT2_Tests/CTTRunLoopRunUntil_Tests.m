@@ -53,7 +53,7 @@
     // Given no work task
     
     // When running the runloop regularly (i.e. by waiting for input sources)
-    BOOL ran = CTTRunLoopRunUntil(_fulfilled, NO, 0.5);
+    BOOL ran = CTTRunLoopRunUntil(0.5, NO, _fulfilled);
     
     // Then
     XCTAssertFalse(ran, @"The operation shouldn't be reported as ran.");
@@ -68,7 +68,7 @@
     dispatch_async(dispatch_get_main_queue(), _work);
     
     // When running the runloop regularly (i.e. by waiting for input sources)
-    BOOL ran = CTTRunLoopRunUntil(_fulfilled, NO, 0.5);
+    BOOL ran = CTTRunLoopRunUntil(0.5, NO, _fulfilled);
     
     // Then
     XCTAssertTrue(ran, @"_fulfilled() should be called after _work set the flag.");
@@ -84,7 +84,7 @@
                    _work);
 
     // When running the runloop regularly (i.e. by waiting for input sources)
-    BOOL ran = CTTRunLoopRunUntil(_fulfilled, NO, 0.5);
+    BOOL ran = CTTRunLoopRunUntil(0.5, NO, _fulfilled);
     
     // Then
     XCTAssertFalse(ran, @"_fulfilled() shouldn't be called after _work.");
@@ -101,7 +101,7 @@
     
     
     // When running the runloop actively (i.e. by polling)
-    BOOL ran = CTTRunLoopRunUntil(_fulfilled, YES, 0.5);
+    BOOL ran = CTTRunLoopRunUntil(0.5, YES, _fulfilled);
 
     // Then
     XCTAssertTrue(ran, @"_fulfilled() should be called after _work set the flag.");
@@ -122,7 +122,7 @@
     
     
     // When running the runloop regularly (i.e. by waiting for input sources)
-    BOOL ran = CTTRunLoopRunUntil(_fulfilled, NO, 0.5);
+    BOOL ran = CTTRunLoopRunUntil(0.5, NO, _fulfilled);
     
     // Then
     XCTAssertTrue(ran, @"_fulfilled() should be called after _work set the flag.");
