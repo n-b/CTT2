@@ -8,7 +8,7 @@
 
 #import "CTTRunLoopRunUntil.h"
 
-Boolean CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)())
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)(void))
 {
     // Loop Observer Callback
     __block Boolean fulfilled = NO;
@@ -36,4 +36,9 @@ Boolean CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^f
     CFRelease(observer);
 
     return fulfilled;
+}
+
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(Boolean(^fulfilled_)(void))
+{
+    return CTTRunLoopRunUntil(1.0, false, fulfilled_);
 }

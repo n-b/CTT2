@@ -16,4 +16,5 @@
 //  * prevent it from sleeping and actively poll `fulfilled_`.
 //
 // returns `true` if we exited because `fulfilled_` returned true, `false` because `timeout_` expired.
-Boolean CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)());
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)(void));
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(Boolean(^fulfilled_)(void)); // timeout_ set to 1.0 and polling to False
