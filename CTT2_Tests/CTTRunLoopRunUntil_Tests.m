@@ -16,9 +16,9 @@
 @implementation CTTRunLoopRunUntil_Tests
 {
     void (^_work)(void);
-    __block Boolean _workComplete;
+    __block BOOL _workComplete;
 
-    Boolean(^_fulfilled)(void);
+    BOOL(^_fulfilled)(void);
     __block int _fulfilled_callCount;
     __block int _fulfilled_postWorkCallCount;
 }

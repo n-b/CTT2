@@ -16,8 +16,8 @@
 //  * prevent it from sleeping and actively poll `fulfilled_`.
 //
 // returns `true` if we exited because `fulfilled_` returned true, `false` because `timeout_` expired.
-Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)(void));
-Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(Boolean(^fulfilled_)(void)); // timeout_ set to 1.0 and polling to False
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntil(NSTimeInterval timeout_, BOOL polling_, BOOL(^fulfilled_)(void));
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntil(BOOL(^fulfilled_)(void)); // timeout_ set to 1.0 and polling to False
 
 
 // CTTRunLoopRunUntilNotification - Run the current RunLoop until a notification is received
@@ -25,5 +25,5 @@ Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(Boolean(^fulfilled_)(vo
 // Wait for a notification with name `name_` and object `object_`.
 // When a matching notification is received `validation_` will be called for additional validation.
 // See `CTTRunLoopRunUntil` for the `timeout_` and `polling_` parameters.
-Boolean __attribute__((overloadable)) CTTRunLoopRunUntilNotification(CFTimeInterval timeout_, Boolean polling_, NSString * name_, id object_, BOOL(^validation_)(NSNotification*));
-Boolean __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSString * name_, id object_); // no additional validation, timeout_ set to 1.0 and polling to False
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSTimeInterval timeout_, BOOL polling_, NSString * name_, id object_, BOOL(^validation_)(NSNotification*));
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSString * name_, id object_); // no additional validation, timeout_ set to 1.0 and polling to False
