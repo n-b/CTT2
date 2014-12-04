@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Capitaine Train. All rights reserved.
 //
 
-@import CoreFoundation;
+@import Foundation;
 
 // CTTRunLoopRunUntil - Run the current RunLoop until `fulfilled_` returns true, at most for `timeout_` seconds.
 //
@@ -18,3 +18,12 @@
 // returns `true` if we exited because `fulfilled_` returned true, `false` because `timeout_` expired.
 Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)(void));
 Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(Boolean(^fulfilled_)(void)); // timeout_ set to 1.0 and polling to False
+
+
+// CTTRunLoopRunUntilNotification - Run the current RunLoop until a notification is received
+//
+// Wait for a notification with name `name_` and object `object_`.
+// When a matching notification is received `validation_` will be called for additional validation.
+// See `CTTRunLoopRunUntil` for the `timeout_` and `polling_` parameters.
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntilNotification(CFTimeInterval timeout_, Boolean polling_, NSString * name_, id object_, BOOL(^validation_)(NSNotification*));
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSString * name_, id object_); // no additional validation, timeout_ set to 1.0 and polling to False

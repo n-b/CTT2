@@ -42,3 +42,26 @@ Boolean __attribute__((overloadable)) CTTRunLoopRunUntil(Boolean(^fulfilled_)(vo
 {
     return CTTRunLoopRunUntil(1.0, false, fulfilled_);
 }
+
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntilNotification(CFTimeInterval timeout_, Boolean polling_, NSString * name_, id object_, BOOL(^validation_)(NSNotification*))
+{
+    __block Boolean validated = false;
+    __block id observation =
+    [[NSNotificationCenter defaultCenter] addObserverForName:name_
+                                                      object:object_
+                                                       queue:[NSOperationQueue currentQueue]
+                                                  usingBlock:^(NSNotification *note)
+     {
+         if (!validation_ || validation_(note)) { validated = true; }
+     }];
+    
+    Boolean result = CTTRunLoopRunUntil(timeout_, polling_, ^{ return validated; });
+    [[NSNotificationCenter defaultCenter] removeObserver:observation];
+    return result;
+}
+
+
+Boolean __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSString * name_, id object_)
+{
+    return CTTRunLoopRunUntilNotification(1.0, false, name_, object_, nil);
+}
