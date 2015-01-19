@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		370D388D1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */; };
+		370D388E1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */; };
 		3775D6631910FE9B001CE42A /* CTTRunLoopRunUntil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */; };
+		3794A0431A36E8B500C296D6 /* CTTSnatch_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3794A0421A36E8B500C296D6 /* CTTSnatch_Tests.m */; };
 		37F2B05919B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */; };
 		37F2B06119B371E60086A2D8 /* CTTRunLoopRunUntil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */; };
 /* End PBXBuildFile section */
@@ -25,12 +28,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		370D388B1A310FCD00DEB0B0 /* CTTSnatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTSnatch.h; path = CTT2/CTTSnatch.h; sourceTree = "<group>"; };
+		370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatch.m; path = CTT2/CTTSnatch.m; sourceTree = "<group>"; };
 		3775D6231910FE3D001CE42A /* libCTT2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCTT2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		3775D65A1910FE9B001CE42A /* CTTRunLoopRunUntil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTRunLoopRunUntil.h; path = CTT2/CTTRunLoopRunUntil.h; sourceTree = "<group>"; };
 		3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTRunLoopRunUntil.m; path = CTT2/CTTRunLoopRunUntil.m; sourceTree = "<group>"; };
+		3794A0421A36E8B500C296D6 /* CTTSnatch_Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatch_Tests.m; path = CTT2_Tests/CTTSnatch_Tests.m; sourceTree = "<group>"; };
 		37F2B05419B371C30086A2D8 /* CTT2 Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CTT2 Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		37F2B05719B371C30086A2D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CTTRunLoopRunUntil_Tests.m; sourceTree = "<group>"; };
+		37F2B05719B371C30086A2D8 /* CTTTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CTTTests-Info.plist"; path = "CTT2_Tests/CTTTests-Info.plist"; sourceTree = "<group>"; };
+		37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = CTTRunLoopRunUntil_Tests.m; path = CTT2_Tests/CTTRunLoopRunUntil_Tests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,9 +60,13 @@
 		3775D61A1910FE3D001CE42A = {
 			isa = PBXGroup;
 			children = (
+				370D388B1A310FCD00DEB0B0 /* CTTSnatch.h */,
+				370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */,
+				3794A0421A36E8B500C296D6 /* CTTSnatch_Tests.m */,
 				3775D65A1910FE9B001CE42A /* CTTRunLoopRunUntil.h */,
 				3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */,
-				37F2B05519B371C30086A2D8 /* Tests */,
+				37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */,
+				37F2B05719B371C30086A2D8 /* CTTTests-Info.plist */,
 				3775D6241910FE3D001CE42A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,16 +78,6 @@
 				37F2B05419B371C30086A2D8 /* CTT2 Tests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		37F2B05519B371C30086A2D8 /* Tests */ = {
-			isa = PBXGroup;
-			children = (
-				37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */,
-				37F2B05719B371C30086A2D8 /* Info.plist */,
-			);
-			name = Tests;
-			path = CTT2_Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -165,6 +165,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3775D6631910FE9B001CE42A /* CTTRunLoopRunUntil.m in Sources */,
+				370D388D1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,7 +174,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				37F2B06119B371E60086A2D8 /* CTTRunLoopRunUntil.m in Sources */,
+				370D388E1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */,
 				37F2B05919B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m in Sources */,
+				3794A0431A36E8B500C296D6 /* CTTSnatch_Tests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,7 +271,7 @@
 		37F2B05A19B371C30086A2D8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = CTT2_Tests/Info.plist;
+				INFOPLIST_FILE = "CTT2_Tests/CTTTests-Info.plist";
 				PRODUCT_NAME = "CTT2 Tests";
 			};
 			name = Debug;
@@ -276,7 +279,7 @@
 		37F2B05B19B371C30086A2D8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				INFOPLIST_FILE = CTT2_Tests/Info.plist;
+				INFOPLIST_FILE = "CTT2_Tests/CTTTests-Info.plist";
 				PRODUCT_NAME = "CTT2 Tests";
 			};
 			name = Release;
