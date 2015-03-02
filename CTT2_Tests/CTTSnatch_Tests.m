@@ -52,10 +52,11 @@
 - (void) test_demo_mockedResponse
 {
     // Mock the response for all the requests in the test
-    [[[self ctt_snatch] snatchURL:@"http://host.com/foos"] respondWithJSON:@{@"foos":@42}];
-    [[[self ctt_snatch] snatchURL:@"http://host.com/bars"] respondWithJSON:@{@"bars":@43}];
+    self.ctt_snatch.matchRequest(^(NSURLRequest*req) { return NO; });
+    [self.ctt_snatch.matchURLString(@"http://host.com/foos") respondWithJSON:@{@"foos":@42}];
+    [self.ctt_snatch.matchURLString(@"http://host.com/bars") respondWithJSON:@{@"bars":@43}];
 
-    [[[self ctt_snatch] snatchURL:@"http://host.com/baz"] respondWithJSON:@{@"baz":@43}];
+    [self.ctt_snatch.matchURLString(@"http://host.com/baz") respondWithJSON:@{@"baz":@43}];
 
     Demo* demo = [[Demo alloc] initWithHost:@"host.com"];
 

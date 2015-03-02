@@ -9,12 +9,21 @@
 #import "CTTSnatch.h"
 #import <objc/runtime.h>
 
+
 @interface CTTSnatch ()
+{
+    Class _snatchProtocolClass;
+}
 @property (copy) BOOL (^snatchBlock)(NSURLRequest*);
 @end
 
 @interface CTTSnatchProtocol : NSURLProtocol
++ (void) setSnatch:(CTTSnatch*)snatch_;
++ (CTTSnatch*) snatch;
+- (CTTSnatch*) snatch;
 @end
+
+/****************************************************/
 
 @implementation CTTSnatchProtocol
 
@@ -91,14 +100,23 @@
 
 @implementation CTTSnatch
 {
-    Class _snatchProtocolClass;
     BOOL _hit;
+    
+    XCTestCase * _testcase;
+    const char * _file;
+    int _line;
 }
 
-- (instancetype) init
+- (instancetype)init
+{
+    return [self initWithTestCase:nil file:NULL line:0];
+}
+
+- (instancetype) initWithTestCase:(XCTestCase*)testcase_ file:(const char*)file_ line:(int)line_;
 {
     self = [super init];
     if (self) {
+        // Create a one-instance subclass of NSURLProtocol just for me.
         const char * name = [NSString stringWithFormat:@"%@-%p",NSStringFromClass([CTTSnatchProtocol class]),self].UTF8String;
         _snatchProtocolClass = objc_allocateClassPair([CTTSnatchProtocol class], name, 0);
         [_snatchProtocolClass setSnatch:self];
@@ -106,6 +124,13 @@
         self.statusCode = 200;
         self.headers = @{};
         self.saveCookies = YES;
+        
+        // Keep testscase info around
+        if(testcase_ && file_) {
+            _testcase = testcase_;
+            _file = file_;
+            _line = line_;
+        }
     }
     return self;
 }
@@ -117,6 +142,32 @@
 }
 
 // Match
+
+typedef BOOL (^CTTSnatchBlock)(NSURLRequest *);
+typedef CTTSnatchBlock (^CTTMatchAlgorithm)(id);
+typedef CTTSnatch* (^CTTMatcher)(id);
+
+- (CTTSnatch *(^)(CTTSnatchBlock))matchRequest
+{
+    return ^(CTTSnatchBlock block){ self.snatchBlock = block; return self; };
+}
+
+- (CTTMatcher) makematcher:(CTTMatchAlgorithm)v_
+{
+    return ^(id obj){
+        return self.matchRequest(v_(obj));
+    };
+}
+
+- (CTTSnatch *(^)(NSString *))matchURLString
+{
+    CTTMatchAlgorithm MatchURLString = ^(NSString* str_) {
+        return ^(NSURLRequest* req) {
+            return [req.URL.absoluteString isEqualToString:str_];
+        };
+    };
+    return [self makematcher:MatchURLString];
+}
 
 - (instancetype) snatchRequestMatching:(BOOL(^)(NSURLRequest*))snatchBlock_
 {
@@ -159,11 +210,13 @@
 
 // Verify
 
-- (void) verify
+- (BOOL) verify
 {
     if (!_hit) {
-        @throw @"fuck";
+        NSString *reason = [NSString stringWithFormat:@"%s:%lu %@", _file, (unsigned long)_line, @"CTTSnatch failed"];
+        [[NSException exceptionWithName:@"CTTSnatchFailure" reason:reason userInfo:nil] raise];
     }
+    return _hit;
 }
 
 @end

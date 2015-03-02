@@ -44,19 +44,35 @@
  - mock network failures
  */
 
-/*
- Components
- 
- Matcher
- Responder
- Verifier
- */
 @interface CTTSnatch : NSObject
 
-- (instancetype) snatchRequestMatching:(BOOL(^)(NSURLRequest*))snatchBlock_;
-- (id) respondWithJSON:(id)jsonObject;
+// Init
+- (instancetype) init;
 
-// Response parameters				defaults
+- (instancetype) initWithTestCase:(XCTestCase*)testcase_ file:(const char*)file_ line:(int)line_;
+#define CTTUnitTestSnatch		([CTTSnatch alloc] initWithTestCase:self file:__FILE__ line:__LINE__])
+
+// Filter
+//- (instancetype) matchRequest:(BOOL(^)(NSURLRequest*))match_;
+
+@property (nonatomic, readonly) CTTSnatch* (^ matchRequest) (BOOL(^)(NSURLRequest*));
+@property (nonatomic, readonly) CTTSnatch* (^ matchURLString) (NSString*);
+
+//- (instancetype) matchURL:(NSString*)urlString_;
+//- (instancetype) matchHost:(NSString*)host_;
+//- (instancetype) matchPath:(NSString*)path_;
+//- (instancetype) matchPredicate:(NSString*)predicate_;
+//- (instancetype) matchRegexp:(NSString*)predicate_;
+
+
+//- (instancetype) times:(NSUInteger)count;
+//- (instancetype) once;
+//- (instancetype) forever;
+
+
+// Response
+//- (instancetype) passthrough;
+
 @property NSError * error;			// nil
 @property NSTimeInterval delay;		// 0
 @property NSInteger statusCode; 	// 200
@@ -64,15 +80,19 @@
 @property NSData * data;			// nil
 @property BOOL saveCookies;			// YES
 
-- (instancetype) snatchURL:(NSString*)urlString_;
-- (instancetype) snatchHost:(NSString*)host_;
+- (instancetype) respondWithJSON:(id)jsonObject;
+
+
+
+// Verification
+
+- (BOOL) verify; // throws if testcase
+
 @end
 
 
-
-
-@interface XCTestCase (CTTSnatch)
+@interface NSObject (CTTSnatch)
 @property (nonatomic, readonly) CTTSnatch * ctt_snatch; // automatically created and deregistered at the end of the test.
-- (CTTSnatch*) ctt_snatch;
 - (void) ctt_verify;
 @end
+
