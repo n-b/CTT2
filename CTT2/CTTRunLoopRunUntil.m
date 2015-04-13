@@ -8,10 +8,10 @@
 
 #import "CTTRunLoopRunUntil.h"
 
-Boolean CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^fulfilled_)())
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntil(NSTimeInterval timeout_, BOOL polling_, BOOL(^fulfilled_)(void))
 {
     // Loop Observer Callback
-    __block Boolean fulfilled = NO;
+    __block BOOL fulfilled = NO;
     void (^beforeWaiting) (CFRunLoopObserverRef observer, CFRunLoopActivity activity) =
     ^(CFRunLoopObserverRef observer, CFRunLoopActivity activity) {
         assert(!fulfilled); //RunLoop should be stopped after condition is fulfilled.
@@ -26,7 +26,7 @@ Boolean CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^f
         }
     };
     
-    CFRunLoopObserverRef observer = CFRunLoopObserverCreateWithHandler(NULL, kCFRunLoopBeforeWaiting, true, 0, beforeWaiting);
+    CFRunLoopObserverRef observer = CFRunLoopObserverCreateWithHandler(NULL, kCFRunLoopBeforeWaiting, YES, 0, beforeWaiting);
     CFRunLoopAddObserver(CFRunLoopGetCurrent(), observer, kCFRunLoopDefaultMode);
     
     // Run!
@@ -36,4 +36,32 @@ Boolean CTTRunLoopRunUntil(CFTimeInterval timeout_, Boolean polling_, Boolean(^f
     CFRelease(observer);
 
     return fulfilled;
+}
+
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntil(BOOL(^fulfilled_)(void))
+{
+    return CTTRunLoopRunUntil(1.0, NO, fulfilled_);
+}
+
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSTimeInterval timeout_, BOOL polling_, NSString * name_, id object_, BOOL(^validation_)(NSNotification*))
+{
+    __block BOOL validated = NO;
+    __block id observation =
+    [[NSNotificationCenter defaultCenter] addObserverForName:name_
+                                                      object:object_
+                                                       queue:[NSOperationQueue currentQueue]
+                                                  usingBlock:^(NSNotification *note)
+     {
+         if (!validation_ || validation_(note)) { validated = YES; }
+     }];
+    
+    BOOL result = CTTRunLoopRunUntil(timeout_, polling_, ^{ return validated; });
+    [[NSNotificationCenter defaultCenter] removeObserver:observation];
+    return result;
+}
+
+
+BOOL __attribute__((overloadable)) CTTRunLoopRunUntilNotification(NSString * name_, id object_)
+{
+    return CTTRunLoopRunUntilNotification(1.0, NO, name_, object_, nil);
 }

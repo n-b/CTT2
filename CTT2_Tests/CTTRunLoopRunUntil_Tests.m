@@ -10,15 +10,15 @@
 
 #import "CTTRunLoopRunUntil.h"
 
-@interface CTT_RunLoopRun_Tests : XCTestCase
+@interface CTTRunLoopRunUntil_Tests : XCTestCase
 @end
 
-@implementation CTT_RunLoopRun_Tests
+@implementation CTTRunLoopRunUntil_Tests
 {
     void (^_work)(void);
-    __block Boolean _workComplete;
+    __block BOOL _workComplete;
 
-    Boolean(^_fulfilled)(void);
+    BOOL(^_fulfilled)(void);
     __block int _fulfilled_callCount;
     __block int _fulfilled_postWorkCallCount;
 }
@@ -130,5 +130,74 @@
     XCTAssertEqual(_fulfilled_postWorkCallCount, 1, @"_fulfilled() should be called once after _work.");
 }
 
+@end
+
+@interface CTTRunLoopRunUntilNotification_Tests : XCTestCase
+@end
+@implementation CTTRunLoopRunUntilNotification_Tests
+{
+    void (^_notify)(void);
+}
+
+- (void)setUp
+{
+    [super setUp];
+    __weak typeof(self) wself = self;
+    _notify = ^{
+        __strong typeof(self) sself = wself;
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"TestNotif" object:sself];
+    };
+}
+
+- (void) test_CTTRunLoopRunUntilNotification
+{
+    // When
+    BOOL ran = CTTRunLoopRunUntilNotification(0.5, NO, @"TestNotif", self, nil);
+    
+    // Then
+    XCTAssertFalse(ran);
+
+    // Given an asynchronous notification on the current queue
+    dispatch_async(dispatch_get_main_queue(), _notify);
+
+    // When
+    ran = CTTRunLoopRunUntilNotification(0.5, NO, @"TestNotif", self, nil);
+
+    // Then
+    XCTAssertTrue(ran);
+}
+
+- (void) test_CTTRunLoopRunUntilNotification_validation
+{
+    // Given
+    __block int validation_callCount;
+    __block BOOL validation_result;
+    BOOL (^validation)(NSNotification*) = ^(NSNotification* note) {
+        ++validation_callCount; return validation_result;
+    };
+
+    validation_callCount = 0;
+    validation_result = NO;
+
+    // When
+    dispatch_async(dispatch_get_main_queue(), _notify);
+    BOOL ran = CTTRunLoopRunUntilNotification(0.5, NO, @"TestNotif", self, validation);
+    
+    // Then
+    XCTAssertFalse(ran);
+    XCTAssertEqual(validation_callCount, 1);
+
+    // Given
+    validation_callCount = 0;
+    validation_result = YES;
+
+    // When
+    dispatch_async(dispatch_get_main_queue(), _notify);
+    ran = CTTRunLoopRunUntilNotification(50, NO, @"TestNotif", self, validation);
+    
+    // Then
+    XCTAssertTrue(ran);
+    XCTAssertEqual(validation_callCount, 1);
+}
 
 @end
