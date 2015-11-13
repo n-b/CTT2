@@ -1,87 +1,64 @@
-//
-//  CTTSnatch.m
-//  CTT2
-//
-//  Created by Nicolas Bouilleaud on 04/12/2014.
-//  Copyright (c) 2014 Capitaine Train. All rights reserved.
-//
-
 #import "CTTSnatch.h"
-#import <objc/runtime.h>
 
+#pragma mark - Request Matching
+
+RequestMatcher __attribute__((overloadable)) URLMatcher(NSURL* url_) {
+    return ^(NSURLRequest * req) { return [req.URL isEqual:url_]; };
+}
+RequestMatcher __attribute__((overloadable)) URLMatcher(NSString* urlString_) {
+    return ^(NSURLRequest * req) { return [req.URL.absoluteString isEqualToString:urlString_]; };
+}
+RequestMatcher HostMatcher(NSString* host_) {
+    return ^(NSURLRequest * req) { return [req.URL.host isEqualToString:host_]; };
+}
+
+#pragma mark - Snatch URLProtocol
 
 @interface CTTSnatch ()
-{
-    Class _snatchProtocolClass;
-}
-@property (copy) BOOL (^snatchBlock)(NSURLRequest*);
+- (void) hit;
+@property (readonly) NSUInteger hitCount;
+@property (readonly) CTTSnatchResponse * response;
 @end
+
+CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request);
 
 @interface CTTSnatchProtocol : NSURLProtocol
-+ (void) setSnatch:(CTTSnatch*)snatch_;
-+ (CTTSnatch*) snatch;
-- (CTTSnatch*) snatch;
 @end
-
-/****************************************************/
 
 @implementation CTTSnatchProtocol
 
-+ (instancetype)alloc
-{
-    NSAssert([self isSubclassOfClass:[CTTSnatchProtocol class]], @"Should only instantiate subclasses of CTTSnatchProtocol");
-    NSAssert(self != [CTTSnatchProtocol class], @"Should only instantiate subclasses of CTTSnatchProtocol");
-    return [super alloc];
-}
-
-+ (void) setSnatch:(CTTSnatch*)snatch_
-{
-    objc_setAssociatedObject(self, @selector(snatch), snatch_, OBJC_ASSOCIATION_ASSIGN);
-}
-
-+ (CTTSnatch*) snatch
-{
-    return objc_getAssociatedObject(self, @selector(snatch));
-}
-
-- (CTTSnatch*) snatch
-{
-    return [[self class] snatch];
-}
-
-+ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request
-{
-    return request;
-}
+// mandatory implementation for NSURLProtocol
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
+- (void)stopLoading { }
 
 + (BOOL)canInitWithRequest:(NSURLRequest *)request
 {
-    return ( YES
-            && [@[@"http", @"https"] containsObject:request.URL.scheme]
-            && (self.snatch.snatchBlock == nil || self.snatch.snatchBlock(request))
-            );
+    return CTTSnatcherForRequest(request)!=nil;
 }
 
 - (void) startLoading
 {
-    if(self.snatch.error) {
-        [self.client URLProtocol:self didFailWithError:self.snatch.error];
+    CTTSnatch * snatch = CTTSnatcherForRequest(self.request);
+    [snatch hit];
+    CTTSnatchResponse * response = [snatch response];
+    if(response.error) {
+        [self.client URLProtocol:self didFailWithError:response.error];
         return;
     }
 
-    if(self.snatch.delay) {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, self.snatch.delay, false);
+    if(response.delay) {
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, response.delay, false);
     }
 
-    NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:self.request.URL
-                                                              statusCode:self.snatch.statusCode
+    NSHTTPURLResponse *urlResponse = [[NSHTTPURLResponse alloc] initWithURL:self.request.URL
+                                                              statusCode:response.statusCode
                                                              HTTPVersion:@"HTTP/1.1"
-                                                            headerFields:self.snatch.headers];
-    [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
-    [self.client URLProtocol:self didLoadData:self.snatch.data];
+                                                            headerFields:response.headers];
+    [self.client URLProtocol:self didReceiveResponse:urlResponse cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+    [self.client URLProtocol:self didLoadData:response.data];
     
-    if(self.snatch.saveCookies) {
-        NSArray * cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:response.allHeaderFields forURL:self.request.URL];
+    if(response.saveCookies) {
+        NSArray * cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:urlResponse.allHeaderFields forURL:self.request.URL];
         [NSHTTPCookieStorage.sharedHTTPCookieStorage setCookies:cookies
                                                          forURL:self.request.URL
                                                 mainDocumentURL:self.request.URL];
@@ -89,161 +66,158 @@
     [self.client URLProtocolDidFinishLoading:self];
 }
 
-- (void)stopLoading
+@end
+
+#pragma mark - Snatcher Store
+
+static NSMutableArray * CTTSnatchers;
+
+void CTTSnatcherAdd(CTTSnatch* snatcher_)
 {
-    // mandatory implementation for NSURLProtocol
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        CTTSnatchers = [NSMutableArray new];
+    });
+    if(CTTSnatchers.count==0) {
+        [NSURLProtocol registerClass:CTTSnatchProtocol.class];
+    }
+    [CTTSnatchers addObject:snatcher_];
+}
+
+void CTTSnatcherRemove(CTTSnatch* snatcher_)
+{
+    [CTTSnatchers removeObject:snatcher_];
+    if(CTTSnatchers.count==0) {
+        [NSURLProtocol unregisterClass:CTTSnatchProtocol.class];
+    }
+}
+
+CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
+{
+    for (CTTSnatch * snatcher in CTTSnatchers) {
+        if(snatcher.matcher(request)) {
+            return snatcher;
+        }
+    }
+    return nil;
+}
+
+#pragma mark - CTTSnatch
+
+@implementation CTTSnatch
+{
+    RequestMatcher _matcher;
+    CTTSnatchResponse * _response;
+}
+
+- (instancetype)initWithMatcher:(RequestMatcher)matcher_
+{
+    self = [super init];
+    if (self) {
+        _matcher = [matcher_ copy];
+        _response = [CTTSnatchResponse new];
+        
+        CTTSnatcherAdd(self);
+    }
+    return self;
+}
+
+- (void)stop
+{
+    CTTSnatcherRemove(self);
+}
+
+- (void)hit
+{
+    ++_hitCount;
+}
+
+- (BOOL)shouldSnatch:(NSURLRequest*)req
+{
+    BOOL hit = _matcher(req);
+    if(hit) { ++_hitCount; }
+    return hit;
+}
+
+- (void) respondWith:(CTTSnatchResponse*)response_
+{
+    _response = response_;
 }
 
 @end
 
-/**************************************/
+#pragma mark - Response
 
-@implementation CTTSnatch
+@implementation CTTSnatchResponse
+
+- (instancetype)init
 {
-    BOOL _hit;
-    
-    XCTestCase * _testcase;
+    self = [super init];
+    if (self) {
+        self.statusCode = 200;
+        self.headers = @{};
+        self.saveCookies = YES;
+    }
+    return self;
+}
+
+- (instancetype)initWithJSON:(id)jsonObject
+{
+    self = [self init];
+    if(self) {
+        self.data = [NSJSONSerialization dataWithJSONObject:jsonObject options:NSJSONWritingPrettyPrinted error:NULL];
+        NSMutableDictionary * headers = [NSMutableDictionary dictionaryWithDictionary:self.headers];
+        [headers addEntriesFromDictionary:@{ @"Content-Type": @"application/json; charset=utf-8" }];
+        self.headers = headers;
+    }
+    return self;
+}
+
+@end
+
+
+#pragma mark - XCUnit integration
+
+@import XCTest;
+
+@interface UnitTestSnatch () <XCTestObservation>
+@end
+
+@implementation UnitTestSnatch
+{
+    XCTestCase * _test;
     const char * _file;
     int _line;
 }
 
-- (instancetype)init
+- (instancetype)initWithMatcher:(RequestMatcher)matcher_ test:(XCTestCase *)test_ file:(const char *)file_ line:(int)line_
 {
-    return [self initWithTestCase:nil file:NULL line:0];
-}
-
-- (instancetype) initWithTestCase:(XCTestCase*)testcase_ file:(const char*)file_ line:(int)line_;
-{
-    self = [super init];
-    if (self) {
-        // Create a one-instance subclass of NSURLProtocol just for me.
-        const char * name = [NSString stringWithFormat:@"%@-%p",NSStringFromClass([CTTSnatchProtocol class]),self].UTF8String;
-        _snatchProtocolClass = objc_allocateClassPair([CTTSnatchProtocol class], name, 0);
-        [_snatchProtocolClass setSnatch:self];
-        [NSURLProtocol registerClass:_snatchProtocolClass];
-        self.statusCode = 200;
-        self.headers = @{};
-        self.saveCookies = YES;
+    self = [super initWithMatcher:matcher_];
+    if(self) {
+        _test = test_;
+        _file = file_;
+        _line = line_;
         
-        // Keep testscase info around
-        if(testcase_ && file_) {
-            _testcase = testcase_;
-            _file = file_;
-            _line = line_;
-        }
+        [XCTestObservationCenter.sharedTestObservationCenter addTestObserver:self];
     }
     return self;
 }
 
-- (void)dealloc
+- (void)testCaseDidFinish:(XCTestCase *)testCase
 {
-    [_snatchProtocolClass setSnatch:nil]; // probably unnecessary
-    [NSURLProtocol unregisterClass:_snatchProtocolClass];
-}
-
-// Match
-
-typedef BOOL (^CTTSnatchBlock)(NSURLRequest *);
-typedef CTTSnatchBlock (^CTTMatchAlgorithm)(id);
-typedef CTTSnatch* (^CTTMatcher)(id);
-
-- (CTTSnatch *(^)(CTTSnatchBlock))matchRequest
-{
-    return ^(CTTSnatchBlock block){ self.snatchBlock = block; return self; };
-}
-
-- (CTTMatcher) makematcher:(CTTMatchAlgorithm)v_
-{
-    return ^(id obj){
-        return self.matchRequest(v_(obj));
-    };
-}
-
-- (CTTSnatch *(^)(NSString *))matchURLString
-{
-    CTTMatchAlgorithm MatchURLString = ^(NSString* str_) {
-        return ^(NSURLRequest* req) {
-            return [req.URL.absoluteString isEqualToString:str_];
-        };
-    };
-    return [self makematcher:MatchURLString];
-}
-
-- (instancetype) snatchRequestMatching:(BOOL(^)(NSURLRequest*))snatchBlock_
-{
-    __weak typeof(self) wself = self;
-    self.snatchBlock = ^(NSURLRequest* r){
-        __strong typeof(self) sself = wself;
-        sself->_hit = snatchBlock_(r);
-        return (BOOL)(sself->_hit && sself->_data);
-    };
-
-    return self;
-}
-
-- (instancetype) snatchURL:(NSString*)urlString_
-{
-    [self snatchRequestMatching:^(NSURLRequest *request) {
-        return [[request.URL absoluteString] isEqualToString:urlString_];
-    }];
-    return self;
-}
-
-- (instancetype) snatchHost:(NSString*)host_
-{
-    [self snatchRequestMatching:^(NSURLRequest *request) {
-        return [request.URL.host isEqualToString:host_];
-    }];
-    return self;
-}
-
-// Respond
-
-- (id) respondWithJSON:(id)jsonObject
-{
-    self.data = [NSJSONSerialization dataWithJSONObject:jsonObject options:NSJSONWritingPrettyPrinted error:NULL];
-    NSMutableDictionary * headers = [NSMutableDictionary dictionaryWithDictionary:self.headers];
-    [headers addEntriesFromDictionary:@{ @"Content-Type": @"application/json; charset=utf-8" }];
-    self.headers = headers;
-    return self;
-}
-
-// Verify
-
-- (BOOL) verify
-{
-    if (!_hit) {
-        NSString *reason = [NSString stringWithFormat:@"%s:%lu %@", _file, (unsigned long)_line, @"CTTSnatch failed"];
-        [[NSException exceptionWithName:@"CTTSnatchFailure" reason:reason userInfo:nil] raise];
-    }
-    return _hit;
-}
-
-@end
-
-
-
-@implementation XCTestCase (CTTRequestSnatcher)
-
-- (CTTSnatch *)ctt_snatch
-{
-    @synchronized(self) {
-        NSMutableArray * snatchers = objc_getAssociatedObject(self, @selector(ctt_snatch));
-        if (nil==snatchers) {
-            snatchers = [NSMutableArray new];
-            objc_setAssociatedObject(self, @selector(ctt_snatch), snatchers, OBJC_ASSOCIATION_RETAIN);
-        }
-        CTTSnatch * snatch = [CTTSnatch new];
-        [snatchers addObject:snatch];
-        return snatch;
+    if (testCase==_test) {
+        [self stop];
+        [XCTestObservationCenter.sharedTestObservationCenter removeTestObserver:self]; // This crashes sometimes, XCTestObservationCenter doesn’t support mutating its list.
     }
 }
 
-- (void) ctt_verifyAll
+- (BOOL)verify
 {
-    for (CTTSnatch * snatch in objc_getAssociatedObject(self, @selector(ctt_snatch))) {
-        [snatch verify];
+    BOOL verified = self.hitCount != 0;
+    if (!verified && _test) {
+        _XCTFailureHandler(_test, YES, _file, _line, @"Snatcher not hit", nil);
     }
+    return verified;
 }
 
 @end

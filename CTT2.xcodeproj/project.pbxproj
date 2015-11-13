@@ -123,7 +123,7 @@
 		3775D61B1910FE3D001CE42A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = "Capitaine Train";
 				TargetAttributes = {
 					37F2B05319B371C30086A2D8 = {
@@ -200,6 +200,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -272,6 +273,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = "CTT2_Tests/CTTTests-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.bou.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "CTT2 Tests";
 			};
 			name = Debug;
@@ -280,6 +282,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = "CTT2_Tests/CTTTests-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.bou.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "CTT2 Tests";
 			};
 			name = Release;

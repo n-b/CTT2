@@ -1,78 +1,16 @@
-//
-//  CTTSnatch.h
-//  CTT2
-//
-//  Created by Nicolas Bouilleaud on 04/12/2014.
-//  Copyright (c) 2014 Capitaine Train. All rights reserved.
-//
-
 @import Foundation;
-@import XCTest;
+
+#pragma mark - Request Matching
+
+typedef BOOL (^RequestMatcher)(NSURLRequest *);
+RequestMatcher __attribute__((overloadable)) URLMatcher(NSURL* url_);
+RequestMatcher __attribute__((overloadable)) URLMatcher(NSString* urlString_);
+RequestMatcher HostMatcher(NSString* host_);
 
 
-/*
- Use cases
- - mock individual network requests in unit tests
- CTTSnatchNextRequest()
- CTTSnatchAllRequests()
+#pragma mark - Response
 
- .matching(block)
- .withHost()
- .withPath()
-
- .delay()
-
- .andRespond()
-   .withError()
-   .withStatus()
-   .withData()
-   .withHeaders()
-   .withJSONObject()
-   .andSaveCookies()
- 
- .andLetPass() // default if respond isn't called
- 
- CTTSnatchVerifyRequest(block) // when using snatchall
-
- CTTSnatchVerify() // when using snatchnext
- 
- - mock all requests in fake sessions for offline/quick debugging (replay real responses? what about autorecord?)
- 
- 
- 
- - mock specific requests but let others pass?
- - mock network failures
- */
-
-@interface CTTSnatch : NSObject
-
-// Init
-- (instancetype) init;
-
-- (instancetype) initWithTestCase:(XCTestCase*)testcase_ file:(const char*)file_ line:(int)line_;
-#define CTTUnitTestSnatch		([CTTSnatch alloc] initWithTestCase:self file:__FILE__ line:__LINE__])
-
-// Filter
-//- (instancetype) matchRequest:(BOOL(^)(NSURLRequest*))match_;
-
-@property (nonatomic, readonly) CTTSnatch* (^ matchRequest) (BOOL(^)(NSURLRequest*));
-@property (nonatomic, readonly) CTTSnatch* (^ matchURLString) (NSString*);
-
-//- (instancetype) matchURL:(NSString*)urlString_;
-//- (instancetype) matchHost:(NSString*)host_;
-//- (instancetype) matchPath:(NSString*)path_;
-//- (instancetype) matchPredicate:(NSString*)predicate_;
-//- (instancetype) matchRegexp:(NSString*)predicate_;
-
-
-//- (instancetype) times:(NSUInteger)count;
-//- (instancetype) once;
-//- (instancetype) forever;
-
-
-// Response
-//- (instancetype) passthrough;
-
+@interface CTTSnatchResponse : NSObject
 @property NSError * error;			// nil
 @property NSTimeInterval delay;		// 0
 @property NSInteger statusCode; 	// 200
@@ -80,19 +18,43 @@
 @property NSData * data;			// nil
 @property BOOL saveCookies;			// YES
 
-- (instancetype) respondWithJSON:(id)jsonObject;
+- (instancetype) initWithJSON:(id)jsonObject;
+@end
 
 
+#pragma mark - Snatcher
 
-// Verification
+@class CTTSnatchResponse;
 
-- (BOOL) verify; // throws if testcase
+@interface CTTSnatch : NSObject
+
+- (instancetype) init NS_UNAVAILABLE;
+- (instancetype) initWithMatcher:(RequestMatcher)matcher NS_DESIGNATED_INITIALIZER;
+
+@property (readonly) RequestMatcher matcher;
+- (void) stop;
+
+// Counter
+
+//- (instancetype) times:(NSUInteger)count;
+//- (instancetype) once;
+//- (instancetype) forever;
+
+//- (instancetype) passthrough;
+
+- (void) respondWith:(CTTSnatchResponse*)response_;
 
 @end
 
 
-@interface NSObject (CTTSnatch)
-@property (nonatomic, readonly) CTTSnatch * ctt_snatch; // automatically created and deregistered at the end of the test.
-- (void) ctt_verify;
+#pragma mark - XCUnit integration
+
+@class XCTestCase;
+
+@interface UnitTestSnatch : CTTSnatch
+- (instancetype) initWithMatcher:(RequestMatcher)matcher_ test:(XCTestCase *)test_ file:(const char *)file_ line:(int)line_;
+- (BOOL) verify;
 @end
+
+#define CTTUnitTestSnatch(matcher)  ([[UnitTestSnatch alloc] initWithMatcher:matcher test:self file:__FILE__ line:__LINE__])
 
