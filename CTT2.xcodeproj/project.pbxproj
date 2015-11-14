@@ -7,8 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		370D388D1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */; };
-		370D388E1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */; };
+		37608E8F1BF795FA00A60DB2 /* CTTUnitTestSnatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608E8E1BF795FA00A60DB2 /* CTTUnitTestSnatcher.m */; };
+		37608E901BF795FA00A60DB2 /* CTTUnitTestSnatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608E8E1BF795FA00A60DB2 /* CTTUnitTestSnatcher.m */; };
+		37608E931BF7964800A60DB2 /* CTTSnatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608E921BF7964800A60DB2 /* CTTSnatcher.m */; };
+		37608E941BF7964800A60DB2 /* CTTSnatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608E921BF7964800A60DB2 /* CTTSnatcher.m */; };
+		37608EA11BF7979500A60DB2 /* CTTSnatchProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608E9E1BF7979500A60DB2 /* CTTSnatchProtocol.m */; };
+		37608EA21BF7979500A60DB2 /* CTTSnatchProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608E9E1BF7979500A60DB2 /* CTTSnatchProtocol.m */; };
+		37608EA31BF7979500A60DB2 /* CTTSnatchResponders.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EA01BF7979500A60DB2 /* CTTSnatchResponders.m */; };
+		37608EA41BF7979500A60DB2 /* CTTSnatchResponders.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EA01BF7979500A60DB2 /* CTTSnatchResponders.m */; };
+		37608EA71BF797D000A60DB2 /* CTTSnatchMatchers.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EA61BF797D000A60DB2 /* CTTSnatchMatchers.m */; };
+		37608EA81BF797D000A60DB2 /* CTTSnatchMatchers.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EA61BF797D000A60DB2 /* CTTSnatchMatchers.m */; };
 		3775D6631910FE9B001CE42A /* CTTRunLoopRunUntil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */; };
 		3794A0431A36E8B500C296D6 /* CTTSnatch_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3794A0421A36E8B500C296D6 /* CTTSnatch_Tests.m */; };
 		37F2B05919B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */; };
@@ -29,7 +37,16 @@
 
 /* Begin PBXFileReference section */
 		370D388B1A310FCD00DEB0B0 /* CTTSnatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTSnatch.h; path = CTT2/CTTSnatch.h; sourceTree = "<group>"; };
-		370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatch.m; path = CTT2/CTTSnatch.m; sourceTree = "<group>"; };
+		37608E8D1BF795FA00A60DB2 /* CTTUnitTestSnatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTUnitTestSnatcher.h; path = CTT2/CTTUnitTestSnatcher.h; sourceTree = "<group>"; };
+		37608E8E1BF795FA00A60DB2 /* CTTUnitTestSnatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTUnitTestSnatcher.m; path = CTT2/CTTUnitTestSnatcher.m; sourceTree = "<group>"; };
+		37608E911BF7964800A60DB2 /* CTTSnatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTSnatcher.h; path = CTT2/CTTSnatcher.h; sourceTree = "<group>"; };
+		37608E921BF7964800A60DB2 /* CTTSnatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatcher.m; path = CTT2/CTTSnatcher.m; sourceTree = "<group>"; };
+		37608E9D1BF7979500A60DB2 /* CTTSnatchProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTSnatchProtocol.h; path = CTT2/CTTSnatchProtocol.h; sourceTree = "<group>"; };
+		37608E9E1BF7979500A60DB2 /* CTTSnatchProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatchProtocol.m; path = CTT2/CTTSnatchProtocol.m; sourceTree = "<group>"; };
+		37608E9F1BF7979500A60DB2 /* CTTSnatchResponders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTSnatchResponders.h; path = CTT2/CTTSnatchResponders.h; sourceTree = "<group>"; };
+		37608EA01BF7979500A60DB2 /* CTTSnatchResponders.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatchResponders.m; path = CTT2/CTTSnatchResponders.m; sourceTree = "<group>"; };
+		37608EA51BF797D000A60DB2 /* CTTSnatchMatchers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTSnatchMatchers.h; path = CTT2/CTTSnatchMatchers.h; sourceTree = "<group>"; };
+		37608EA61BF797D000A60DB2 /* CTTSnatchMatchers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTSnatchMatchers.m; path = CTT2/CTTSnatchMatchers.m; sourceTree = "<group>"; };
 		3775D6231910FE3D001CE42A /* libCTT2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCTT2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		3775D65A1910FE9B001CE42A /* CTTRunLoopRunUntil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTRunLoopRunUntil.h; path = CTT2/CTTRunLoopRunUntil.h; sourceTree = "<group>"; };
 		3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTRunLoopRunUntil.m; path = CTT2/CTTRunLoopRunUntil.m; sourceTree = "<group>"; };
@@ -57,12 +74,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3775D61A1910FE3D001CE42A = {
+		37608E881BF7957600A60DB2 /* Snatch */ = {
 			isa = PBXGroup;
 			children = (
 				370D388B1A310FCD00DEB0B0 /* CTTSnatch.h */,
-				370D388C1A310FCD00DEB0B0 /* CTTSnatch.m */,
+				37608E911BF7964800A60DB2 /* CTTSnatcher.h */,
+				37608E921BF7964800A60DB2 /* CTTSnatcher.m */,
+				37608EA51BF797D000A60DB2 /* CTTSnatchMatchers.h */,
+				37608EA61BF797D000A60DB2 /* CTTSnatchMatchers.m */,
+				37608E9F1BF7979500A60DB2 /* CTTSnatchResponders.h */,
+				37608EA01BF7979500A60DB2 /* CTTSnatchResponders.m */,
+				37608E9D1BF7979500A60DB2 /* CTTSnatchProtocol.h */,
+				37608E9E1BF7979500A60DB2 /* CTTSnatchProtocol.m */,
+				37608E8D1BF795FA00A60DB2 /* CTTUnitTestSnatcher.h */,
+				37608E8E1BF795FA00A60DB2 /* CTTUnitTestSnatcher.m */,
 				3794A0421A36E8B500C296D6 /* CTTSnatch_Tests.m */,
+			);
+			name = Snatch;
+			sourceTree = "<group>";
+		};
+		3775D61A1910FE3D001CE42A = {
+			isa = PBXGroup;
+			children = (
+				37608E881BF7957600A60DB2 /* Snatch */,
 				3775D65A1910FE9B001CE42A /* CTTRunLoopRunUntil.h */,
 				3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */,
 				37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */,
@@ -164,8 +198,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37608EA11BF7979500A60DB2 /* CTTSnatchProtocol.m in Sources */,
 				3775D6631910FE9B001CE42A /* CTTRunLoopRunUntil.m in Sources */,
-				370D388D1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */,
+				37608EA71BF797D000A60DB2 /* CTTSnatchMatchers.m in Sources */,
+				37608EA31BF7979500A60DB2 /* CTTSnatchResponders.m in Sources */,
+				37608E8F1BF795FA00A60DB2 /* CTTUnitTestSnatcher.m in Sources */,
+				37608E931BF7964800A60DB2 /* CTTSnatcher.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,9 +212,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				37F2B06119B371E60086A2D8 /* CTTRunLoopRunUntil.m in Sources */,
-				370D388E1A310FCD00DEB0B0 /* CTTSnatch.m in Sources */,
 				37F2B05919B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m in Sources */,
+				37608EA81BF797D000A60DB2 /* CTTSnatchMatchers.m in Sources */,
+				37608EA41BF7979500A60DB2 /* CTTSnatchResponders.m in Sources */,
+				37608E901BF795FA00A60DB2 /* CTTUnitTestSnatcher.m in Sources */,
 				3794A0431A36E8B500C296D6 /* CTTSnatch_Tests.m in Sources */,
+				37608E941BF7964800A60DB2 /* CTTSnatcher.m in Sources */,
+				37608EA21BF7979500A60DB2 /* CTTSnatchProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

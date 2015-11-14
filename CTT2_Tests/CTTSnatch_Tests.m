@@ -1,4 +1,5 @@
-#import <XCTest/XCTest.h>
+@import XCTest;
+
 #import "CTTSnatch.h"
 
 @interface CTTSnatch_Tests : XCTestCase
