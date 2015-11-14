@@ -1,42 +1,45 @@
 @import Foundation;
 
+@class _CTTSnatcher;
+
 #pragma mark - Request Matching
-#define SNATCH_OVERLOADABLE __attribute__((overloadable))
 
-typedef BOOL (^RequestMatcher)(NSURLRequest *);
-RequestMatcher SNATCH_OVERLOADABLE Matcher(NSURL* url_);
-RequestMatcher SNATCH_OVERLOADABLE Matcher(NSString* urlString_);
-RequestMatcher SNATCH_OVERLOADABLE Matcher(NSRegularExpression* regexp_);
-
+@interface _CTTSnatchMatchers : NSObject
+@property (readonly) _CTTSnatcher*(^url)(id urlOrString);
+@property (readonly) _CTTSnatcher*(^regexp)(id regexpOrString);
+@end
 
 #pragma mark - Response
 
-typedef void (^RequestResponder)(NSURLProtocol*);
-RequestResponder SNATCH_OVERLOADABLE Responder(void);
-RequestResponder SNATCH_OVERLOADABLE Responder(NSError* error_);
-RequestResponder SNATCH_OVERLOADABLE Responder(NSTimeInterval delay_, RequestResponder responder_);
-RequestResponder SNATCH_OVERLOADABLE Responder(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_);
-RequestResponder SNATCH_OVERLOADABLE Responder(id jsonObject);
-
+@interface _CTTSnatchResponders : NSObject
+@property (readonly) _CTTSnatcher*(^nothing)(void);
+@property (readonly) _CTTSnatcher*(^error)(NSError* error_);
+@property (readonly) _CTTSnatcher*(^http)(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_);
+@property (readonly) _CTTSnatcher*(^json)(id jsonObject_);
+@end
 
 
 #pragma mark - Snatcher
 
-@class CTTSnatchResponse;
+@interface _CTTSnatcher : NSObject
 
-@interface CTTSnatch : NSObject
+// CTTSnatch.new.match.URL(NSURL*).respond.JSON(id)
 
-- (instancetype) init NS_UNAVAILABLE;
-- (instancetype) initWithMatcher:(RequestMatcher)matcher_ NS_DESIGNATED_INITIALIZER;
+- (instancetype) init;
 
-@property (readonly) RequestMatcher matcher;
+@property (readonly) _CTTSnatchMatchers* match;
+
+@property (readonly) _CTTSnatchResponders* respond;
+
+@property (readonly) _CTTSnatcher* (^delay)(NSTimeInterval delay_);
+
 @property (readonly) NSUInteger hitCount;
-- (void) stop;
 
-- (instancetype(^)(RequestResponder))respondWith;
+- (void) stop;
 
 // Counter
 
+// - delay
 //- (instancetype) times:(NSUInteger)count;
 //- (instancetype) once;
 //- (instancetype) forever;
@@ -45,15 +48,17 @@ RequestResponder SNATCH_OVERLOADABLE Responder(id jsonObject);
 
 @end
 
+#define CTTSnatcher  ([[_CTTSnatcher alloc] init])
+
 
 #pragma mark - XCUnit integration
 
 @class XCTestCase;
 
-@interface UnitTestSnatch : CTTSnatch
-- (instancetype) initWithMatcher:(RequestMatcher)matcher_ test:(XCTestCase *)test_ file:(const char *)file_ line:(int)line_;
+@interface _CTTUnitTestSnatcher : _CTTSnatcher
+- (instancetype) initWithTest:(XCTestCase *)test_ file:(const char *)file_ line:(int)line_;
 - (BOOL) verify;
 @end
 
-#define CTTUnitTestSnatch(matcher)  ([[UnitTestSnatch alloc] initWithMatcher:matcher test:self file:__FILE__ line:__LINE__])
+#define CTTUnitTestSnatcher  ([[_CTTUnitTestSnatcher alloc] initWithTest:self file:__FILE__ line:__LINE__])
 

@@ -1,146 +1,119 @@
 #import "CTTSnatch.h"
 
-#pragma mark - Request Matching
 
-RequestMatcher SNATCH_OVERLOADABLE Matcher(NSURL* url_) {
-    return ^(NSURLRequest * req) { return [req.URL isEqual:url_]; };
-}
-RequestMatcher SNATCH_OVERLOADABLE Matcher(NSString* urlString_) {
-    return ^(NSURLRequest * req) { return [req.URL.absoluteString isEqualToString:urlString_]; };
-}
-RequestMatcher SNATCH_OVERLOADABLE Matcher(NSRegularExpression* regexp_) {
-    return ^(NSURLRequest * req) {
-        NSString * url = req.URL.absoluteString;
-        NSUInteger count = [regexp_ numberOfMatchesInString:url options:0 range:NSMakeRange(0, url.length)];
-        return (BOOL)(count>0);
-    };
-}
+@interface _CTTSnatcher ()
+typedef BOOL (^CTTSnatchMatcher)(NSURLRequest *);
+@property (copy) CTTSnatchMatcher matcher;
 
-#pragma mark - Snatch URLProtocol
+typedef void (^CTTSnatchResponder)(NSURLProtocol*);
+@property (copy) CTTSnatchResponder responder;
 
-@interface CTTSnatch ()
+@property NSTimeInterval delayer;
+
 - (void) respond:(NSURLProtocol*)protocol_;
 @end
 
-CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request);
 
-@interface CTTSnatchProtocol : NSURLProtocol
-@end
 
-@implementation CTTSnatchProtocol
+#pragma mark - Request Matching
 
-// mandatory implementation for NSURLProtocol
-+ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
-- (void)stopLoading { }
-
-+ (BOOL)canInitWithRequest:(NSURLRequest *)request
+@implementation _CTTSnatchMatchers
 {
-    return CTTSnatcherForRequest(request)!=nil;
+    _CTTSnatcher* _snatcher;
 }
 
-- (void) startLoading
-{
-    CTTSnatch * snatch = CTTSnatcherForRequest(self.request);
-    [snatch respond:self];
-}
-
-@end
-
-#pragma mark - Snatcher Store
-
-static NSMutableArray * CTTSnatchers;
-
-void CTTSnatcherAdd(CTTSnatch* snatcher_)
-{
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        CTTSnatchers = [NSMutableArray new];
-    });
-    if(CTTSnatchers.count==0) {
-        [NSURLProtocol registerClass:CTTSnatchProtocol.class];
-    }
-    [CTTSnatchers addObject:snatcher_];
-}
-
-void CTTSnatcherRemove(CTTSnatch* snatcher_)
-{
-    [CTTSnatchers removeObject:snatcher_];
-    if(CTTSnatchers.count==0) {
-        [NSURLProtocol unregisterClass:CTTSnatchProtocol.class];
-    }
-}
-
-CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
-{
-    for (CTTSnatch * snatcher in CTTSnatchers) {
-        if(snatcher.matcher(request)) {
-            return snatcher;
-        }
-    }
-    return nil;
-}
-
-#pragma mark - CTTSnatch
-
-@implementation CTTSnatch
-{
-    RequestMatcher _matcher;
-    RequestResponder _responder;
-}
-
-- (instancetype)initWithMatcher:(RequestMatcher)matcher_
+- (instancetype)initWithSnatcher:(_CTTSnatcher*)snatcher_
 {
     self = [super init];
     if (self) {
-        _matcher = [matcher_ copy];
-        _responder = Responder();
-        CTTSnatcherAdd(self);
+        _snatcher = snatcher_;
     }
     return self;
 }
 
-- (void)stop
+- (_CTTSnatcher *(^)(id urlOrString))url
 {
-    CTTSnatcherRemove(self);
-}
-
-- (instancetype(^)(RequestResponder))respondWith
-{
-    return ^(RequestResponder responder) {
-        self->_responder = responder;
-        return self;
+    return ^(id urlOrString_){
+        _snatcher.matcher = ^(NSURLRequest * req) {
+            id url = urlOrString_;
+            if([url isKindOfClass:NSString.class]) {
+                url = [NSURL URLWithString:url];
+            }
+            if(![url isKindOfClass:NSURL.class]) {
+                return NO;
+            }
+            return [req.URL isEqual:url];
+        };
+        return _snatcher;
     };
 }
 
-- (void)hit
+- (_CTTSnatcher *(^)(id regexpOrString))regexp
 {
-    ++_hitCount;
-}
-
-- (BOOL)shouldSnatch:(NSURLRequest*)req
-{
-    BOOL hit = _matcher(req);
-    if(hit) { ++_hitCount; }
-    return hit;
-}
-
-- (void)respond:(NSURLProtocol*)protocol_
-{
-    [self hit];
-    _responder(protocol_);
+    return ^(id regexpOrString_){
+        _snatcher.matcher = ^(NSURLRequest * req) {
+            id regexp = regexpOrString_;
+            if([regexp isKindOfClass:NSString.class]) {
+                regexp = [NSRegularExpression regularExpressionWithPattern:regexp options:0 error:NULL];
+            }
+            if(![regexp isKindOfClass:NSRegularExpression.class]) {
+                return NO;
+            }
+            NSString * url = req.URL.absoluteString;
+            NSUInteger count = [regexp numberOfMatchesInString:url options:0 range:NSMakeRange(0, url.length)];
+            return (BOOL)(count>0);
+        };
+        return _snatcher;
+    };
 }
 
 @end
 
+
+
 #pragma mark - Response
 
-RequestResponder SNATCH_OVERLOADABLE Respond(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_)
+@implementation _CTTSnatchResponders
+{
+    _CTTSnatcher* _snatcher;
+}
+
+- (instancetype)initWithSnatcher:(_CTTSnatcher*)snatcher_
+{
+    self = [super init];
+    if (self) {
+        _snatcher = snatcher_;
+    }
+    return self;
+}
+
+- (_CTTSnatcher *(^)(void))nothing
+{
+    return ^(void){
+        _snatcher.responder = ^(NSURLProtocol * protocol) {
+            [protocol.client URLProtocolDidFinishLoading:protocol];
+        };
+        return _snatcher;
+    };
+}
+
+- (_CTTSnatcher *(^)(NSError *))error
+{
+    return ^(NSError * error_){
+        _snatcher.responder = ^(NSURLProtocol * protocol) {
+            [protocol.client URLProtocol:protocol didFailWithError:error_];
+        };
+        return _snatcher;
+    };
+}
+
+CTTSnatchResponder CTTSnatchResponderHTTP(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_)
 {
     return ^(NSURLProtocol * protocol) {
         NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:protocol.request.URL
-                                                                     statusCode:statusCode_
-                                                                    HTTPVersion:@"HTTP/1.1"
-                                                                   headerFields:headers_];
+                                                                  statusCode:statusCode_
+                                                                 HTTPVersion:@"HTTP/1.1"
+                                                                headerFields:headers_];
         [protocol.client URLProtocol:protocol didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
         [protocol.client URLProtocol:protocol didLoadData:data_];
         
@@ -154,52 +127,166 @@ RequestResponder SNATCH_OVERLOADABLE Respond(NSInteger statusCode_, NSDictionary
     };
 }
 
-RequestResponder SNATCH_OVERLOADABLE Responder(void)
+- (_CTTSnatcher *(^)(NSInteger, NSDictionary *, NSData *, BOOL))http
 {
-    return ^(NSURLProtocol * protocol) {
-        [protocol.client URLProtocolDidFinishLoading:protocol];
+    return ^(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_){
+        _snatcher.responder = CTTSnatchResponderHTTP(statusCode_, headers_, data_,saveCookies_);
+        return _snatcher;
     };
 }
 
-RequestResponder SNATCH_OVERLOADABLE Responder(id jsonObject)
+- (_CTTSnatcher *(^)(id))json
 {
-    NSData * data = [NSJSONSerialization dataWithJSONObject:jsonObject options:NSJSONWritingPrettyPrinted error:NULL];
-    NSDictionary * headers = @{ @"Content-Type": @"application/json; charset=utf-8" };
-    return Respond(200, headers, data, NO);
-}
-
-RequestResponder SNATCH_OVERLOADABLE Responder(NSError* error_)
-{
-    return ^(NSURLProtocol * protocol) {
-        [protocol.client URLProtocol:protocol didFailWithError:error_];
+    return ^(id jsonObject_) {
+        NSData * data = [NSJSONSerialization dataWithJSONObject:jsonObject_ options:NSJSONWritingPrettyPrinted error:NULL];
+        NSDictionary * headers = @{ @"Content-Type": @"application/json; charset=utf-8" };
+        _snatcher.responder = CTTSnatchResponderHTTP(200, headers, data, NO);
+        return _snatcher;
     };
 }
 
-RequestResponder SNATCH_OVERLOADABLE Responder(NSTimeInterval delay_, RequestResponder responder_)
+@end
+
+
+#pragma mark - Snatch URLProtocol
+
+@interface CTTSnatchProtocol : NSURLProtocol
+@end
+
+@implementation CTTSnatchProtocol
+
+static NSMutableArray<_CTTSnatcher*> *CTTSnatchers;
++ (void)initialize
 {
-    return ^(NSURLProtocol * protocol) {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, delay_, false);
-        responder_(protocol);
+    CTTSnatchers = [NSMutableArray new];
+}
+
++ (void)addSnatcher:(_CTTSnatcher*)snatcher_
+{
+    if(CTTSnatchers.count==0) {
+        [NSURLProtocol registerClass:self];
+    }
+    [CTTSnatchers addObject:snatcher_];
+}
+
++ (void)removeSnatcher:(_CTTSnatcher*)snatcher_
+{
+    [CTTSnatchers removeObject:snatcher_];
+    if(CTTSnatchers.count==0) {
+        [NSURLProtocol unregisterClass:CTTSnatchProtocol.class];
+    }
+}
+
++ (_CTTSnatcher*) snatcherForRequest:(NSURLRequest*)request_
+{
+    for (_CTTSnatcher * snatcher in CTTSnatchers) {
+        if(snatcher.matcher(request_)) {
+            return snatcher;
+        }
+    }
+    return nil;
+}
+
+// mandatory implementation for NSURLProtocol
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
+- (void)stopLoading { }
+
++ (BOOL)canInitWithRequest:(NSURLRequest *)request
+{
+    return [self snatcherForRequest:request]!=nil;
+}
+
+- (void) startLoading
+{
+    _CTTSnatcher * snatcher = [self.class snatcherForRequest:self.request];
+    [snatcher respond:self];
+}
+
+@end
+
+
+#pragma mark - _CTTSnatcher
+
+@implementation _CTTSnatcher
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        self.match.regexp(@".*");
+        self.delay(0);
+        self.respond.nothing();
+        [CTTSnatchProtocol addSnatcher:self];
+    }
+    return self;
+}
+
+- (void)stop
+{
+    [CTTSnatchProtocol removeSnatcher:self];
+}
+
+- (_CTTSnatchMatchers*)match
+{
+    return [[_CTTSnatchMatchers alloc] initWithSnatcher:self];
+}
+
+- (_CTTSnatchResponders *)respond
+{
+    return [[_CTTSnatchResponders alloc] initWithSnatcher:self];
+}
+
+- (_CTTSnatcher *(^)(NSTimeInterval))delay
+{
+    return ^(NSTimeInterval delay_) {
+
+        self.delayer = delay_;
+        return self;
     };
 }
+
+- (void)hit
+{
+    ++_hitCount;
+}
+
+- (BOOL)shouldSnatch:(NSURLRequest*)req
+{
+    BOOL hit = self.matcher(req);
+    if(hit) { ++_hitCount; }
+    return hit;
+}
+
+- (void)respond:(NSURLProtocol*)protocol_
+{
+    [self hit];
+    if(self.delayer>0) {
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, self.delayer, false);
+    }
+    self.responder(protocol_);
+}
+
+@end
+
+
 
 #pragma mark - XCUnit integration
 
 @import XCTest;
 
-@interface UnitTestSnatch () <XCTestObservation>
+@interface _CTTUnitTestSnatcher () <XCTestObservation>
 @end
 
-@implementation UnitTestSnatch
+@implementation _CTTUnitTestSnatcher
 {
     XCTestCase * _test;
     const char * _file;
     int _line;
 }
 
-- (instancetype)initWithMatcher:(RequestMatcher)matcher_ test:(XCTestCase *)test_ file:(const char *)file_ line:(int)line_
+- (instancetype)initWithTest:(XCTestCase *)test_ file:(const char *)file_ line:(int)line_
 {
-    self = [super initWithMatcher:matcher_];
+    self = [super init];
     if(self) {
         _test = test_;
         _file = file_;
