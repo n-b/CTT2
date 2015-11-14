@@ -1,25 +1,23 @@
 @import Foundation;
 
 #pragma mark - Request Matching
+#define SNATCH_OVERLOADABLE __attribute__((overloadable))
 
 typedef BOOL (^RequestMatcher)(NSURLRequest *);
-RequestMatcher __attribute__((overloadable)) URLMatcher(NSURL* url_);
-RequestMatcher __attribute__((overloadable)) URLMatcher(NSString* urlString_);
-RequestMatcher HostMatcher(NSString* host_);
+RequestMatcher SNATCH_OVERLOADABLE Matcher(NSURL* url_);
+RequestMatcher SNATCH_OVERLOADABLE Matcher(NSString* urlString_);
+RequestMatcher SNATCH_OVERLOADABLE Matcher(NSRegularExpression* regexp_);
 
 
 #pragma mark - Response
 
-@interface CTTSnatchResponse : NSObject
-@property NSError * error;			// nil
-@property NSTimeInterval delay;		// 0
-@property NSInteger statusCode; 	// 200
-@property NSDictionary * headers; 	// @{}
-@property NSData * data;			// nil
-@property BOOL saveCookies;			// YES
+typedef void (^RequestResponder)(NSURLProtocol*);
+RequestResponder SNATCH_OVERLOADABLE Responder(void);
+RequestResponder SNATCH_OVERLOADABLE Responder(NSError* error_);
+RequestResponder SNATCH_OVERLOADABLE Responder(NSTimeInterval delay_, RequestResponder responder_);
+RequestResponder SNATCH_OVERLOADABLE Responder(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_);
+RequestResponder SNATCH_OVERLOADABLE Responder(id jsonObject);
 
-- (instancetype) initWithJSON:(id)jsonObject;
-@end
 
 
 #pragma mark - Snatcher
@@ -29,10 +27,13 @@ RequestMatcher HostMatcher(NSString* host_);
 @interface CTTSnatch : NSObject
 
 - (instancetype) init NS_UNAVAILABLE;
-- (instancetype) initWithMatcher:(RequestMatcher)matcher NS_DESIGNATED_INITIALIZER;
+- (instancetype) initWithMatcher:(RequestMatcher)matcher_ NS_DESIGNATED_INITIALIZER;
 
 @property (readonly) RequestMatcher matcher;
+@property (readonly) NSUInteger hitCount;
 - (void) stop;
+
+- (instancetype(^)(RequestResponder))respondWith;
 
 // Counter
 
@@ -41,8 +42,6 @@ RequestMatcher HostMatcher(NSString* host_);
 //- (instancetype) forever;
 
 //- (instancetype) passthrough;
-
-- (void) respondWith:(CTTSnatchResponse*)response_;
 
 @end
 

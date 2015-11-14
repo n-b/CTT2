@@ -2,22 +2,24 @@
 
 #pragma mark - Request Matching
 
-RequestMatcher __attribute__((overloadable)) URLMatcher(NSURL* url_) {
+RequestMatcher SNATCH_OVERLOADABLE Matcher(NSURL* url_) {
     return ^(NSURLRequest * req) { return [req.URL isEqual:url_]; };
 }
-RequestMatcher __attribute__((overloadable)) URLMatcher(NSString* urlString_) {
+RequestMatcher SNATCH_OVERLOADABLE Matcher(NSString* urlString_) {
     return ^(NSURLRequest * req) { return [req.URL.absoluteString isEqualToString:urlString_]; };
 }
-RequestMatcher HostMatcher(NSString* host_) {
-    return ^(NSURLRequest * req) { return [req.URL.host isEqualToString:host_]; };
+RequestMatcher SNATCH_OVERLOADABLE Matcher(NSRegularExpression* regexp_) {
+    return ^(NSURLRequest * req) {
+        NSString * url = req.URL.absoluteString;
+        NSUInteger count = [regexp_ numberOfMatchesInString:url options:0 range:NSMakeRange(0, url.length)];
+        return (BOOL)(count>0);
+    };
 }
 
 #pragma mark - Snatch URLProtocol
 
 @interface CTTSnatch ()
-- (void) hit;
-@property (readonly) NSUInteger hitCount;
-@property (readonly) CTTSnatchResponse * response;
+- (void) respond:(NSURLProtocol*)protocol_;
 @end
 
 CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request);
@@ -39,31 +41,7 @@ CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request);
 - (void) startLoading
 {
     CTTSnatch * snatch = CTTSnatcherForRequest(self.request);
-    [snatch hit];
-    CTTSnatchResponse * response = [snatch response];
-    if(response.error) {
-        [self.client URLProtocol:self didFailWithError:response.error];
-        return;
-    }
-
-    if(response.delay) {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, response.delay, false);
-    }
-
-    NSHTTPURLResponse *urlResponse = [[NSHTTPURLResponse alloc] initWithURL:self.request.URL
-                                                              statusCode:response.statusCode
-                                                             HTTPVersion:@"HTTP/1.1"
-                                                            headerFields:response.headers];
-    [self.client URLProtocol:self didReceiveResponse:urlResponse cacheStoragePolicy:NSURLCacheStorageNotAllowed];
-    [self.client URLProtocol:self didLoadData:response.data];
-    
-    if(response.saveCookies) {
-        NSArray * cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:urlResponse.allHeaderFields forURL:self.request.URL];
-        [NSHTTPCookieStorage.sharedHTTPCookieStorage setCookies:cookies
-                                                         forURL:self.request.URL
-                                                mainDocumentURL:self.request.URL];
-    }
-    [self.client URLProtocolDidFinishLoading:self];
+    [snatch respond:self];
 }
 
 @end
@@ -107,7 +85,7 @@ CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
 @implementation CTTSnatch
 {
     RequestMatcher _matcher;
-    CTTSnatchResponse * _response;
+    RequestResponder _responder;
 }
 
 - (instancetype)initWithMatcher:(RequestMatcher)matcher_
@@ -115,8 +93,7 @@ CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
     self = [super init];
     if (self) {
         _matcher = [matcher_ copy];
-        _response = [CTTSnatchResponse new];
-        
+        _responder = Responder();
         CTTSnatcherAdd(self);
     }
     return self;
@@ -125,6 +102,14 @@ CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
 - (void)stop
 {
     CTTSnatcherRemove(self);
+}
+
+- (instancetype(^)(RequestResponder))respondWith
+{
+    return ^(RequestResponder responder) {
+        self->_responder = responder;
+        return self;
+    };
 }
 
 - (void)hit
@@ -139,42 +124,64 @@ CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
     return hit;
 }
 
-- (void) respondWith:(CTTSnatchResponse*)response_
+- (void)respond:(NSURLProtocol*)protocol_
 {
-    _response = response_;
+    [self hit];
+    _responder(protocol_);
 }
 
 @end
 
 #pragma mark - Response
 
-@implementation CTTSnatchResponse
-
-- (instancetype)init
+RequestResponder SNATCH_OVERLOADABLE Respond(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_)
 {
-    self = [super init];
-    if (self) {
-        self.statusCode = 200;
-        self.headers = @{};
-        self.saveCookies = YES;
-    }
-    return self;
+    return ^(NSURLProtocol * protocol) {
+        NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:protocol.request.URL
+                                                                     statusCode:statusCode_
+                                                                    HTTPVersion:@"HTTP/1.1"
+                                                                   headerFields:headers_];
+        [protocol.client URLProtocol:protocol didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+        [protocol.client URLProtocol:protocol didLoadData:data_];
+        
+        if(saveCookies_) {
+            NSArray * cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:response.allHeaderFields forURL:protocol.request.URL];
+            [NSHTTPCookieStorage.sharedHTTPCookieStorage setCookies:cookies
+                                                             forURL:protocol.request.URL
+                                                    mainDocumentURL:protocol.request.URL];
+        }
+        [protocol.client URLProtocolDidFinishLoading:protocol];
+    };
 }
 
-- (instancetype)initWithJSON:(id)jsonObject
+RequestResponder SNATCH_OVERLOADABLE Responder(void)
 {
-    self = [self init];
-    if(self) {
-        self.data = [NSJSONSerialization dataWithJSONObject:jsonObject options:NSJSONWritingPrettyPrinted error:NULL];
-        NSMutableDictionary * headers = [NSMutableDictionary dictionaryWithDictionary:self.headers];
-        [headers addEntriesFromDictionary:@{ @"Content-Type": @"application/json; charset=utf-8" }];
-        self.headers = headers;
-    }
-    return self;
+    return ^(NSURLProtocol * protocol) {
+        [protocol.client URLProtocolDidFinishLoading:protocol];
+    };
 }
 
-@end
+RequestResponder SNATCH_OVERLOADABLE Responder(id jsonObject)
+{
+    NSData * data = [NSJSONSerialization dataWithJSONObject:jsonObject options:NSJSONWritingPrettyPrinted error:NULL];
+    NSDictionary * headers = @{ @"Content-Type": @"application/json; charset=utf-8" };
+    return Respond(200, headers, data, NO);
+}
 
+RequestResponder SNATCH_OVERLOADABLE Responder(NSError* error_)
+{
+    return ^(NSURLProtocol * protocol) {
+        [protocol.client URLProtocol:protocol didFailWithError:error_];
+    };
+}
+
+RequestResponder SNATCH_OVERLOADABLE Responder(NSTimeInterval delay_, RequestResponder responder_)
+{
+    return ^(NSURLProtocol * protocol) {
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, delay_, false);
+        responder_(protocol);
+    };
+}
 
 #pragma mark - XCUnit integration
 
@@ -207,7 +214,7 @@ CTTSnatch* CTTSnatcherForRequest(NSURLRequest* request)
 {
     if (testCase==_test) {
         [self stop];
-        [XCTestObservationCenter.sharedTestObservationCenter removeTestObserver:self]; // This crashes sometimes, XCTestObservationCenter doesn’t support mutating its list.
+//        [XCTestObservationCenter.sharedTestObservationCenter removeTestObserver:self]; // This crashes sometimes, XCTestObservationCenter doesn’t support mutating its list.
     }
 }
 

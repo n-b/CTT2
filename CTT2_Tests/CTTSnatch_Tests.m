@@ -13,17 +13,14 @@ id SendDemoRequest(NSString* urlString, NSString * path) {
 
 - (void) test_demo_mockResponse
 {
-    [CTTUnitTestSnatch(URLMatcher(@"http://host.com/foo")) respondWith:[[CTTSnatchResponse alloc] initWithJSON:@{@"bar":@42}]];
-
+    CTTUnitTestSnatch(Matcher(@"http://host.com/foo")).respondWith(Responder(@{@"bar":@42}));
     XCTAssertEqualObjects(SendDemoRequest(@"http://host.com/foo", @"bar"), @42);
 }
 
 - (void) test_demo_verifyRequestIsSent
 {
-    id snatch = CTTUnitTestSnatch(URLMatcher(@"http://host.com/foo"));
-    
+    id snatch = CTTUnitTestSnatch(Matcher(@"http://host.com/foo"));
     SendDemoRequest(@"http://host.com/foo", @"");
-    
     [snatch verify];
 }
 
