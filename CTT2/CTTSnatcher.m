@@ -1,6 +1,7 @@
 #import "CTTSnatcher.h"
 
 #import "CTTSnatchMatchers.h"
+#import "CTTSnatchDelayers.h"
 #import "CTTSnatchResponders.h"
 #import "CTTSnatchProtocol.h"
 
@@ -17,7 +18,7 @@
     self = [super init];
     if (self) {
         self.match.regexp(@".*");
-        self.delay(0);
+        self.delay.none();
         self.respond.nothing();
         [_CTTSnatchProtocol addSnatcher:self];
     }
@@ -41,13 +42,10 @@
     return r;
 }
 
-- (_CTTSnatcher *(^)(NSTimeInterval))delay
+- (_CTTSnatchDelayers *)delay
 {
-    return ^(NSTimeInterval delay_) {
-        
-        self.delayer = delay_;
-        return self;
-    };
+    _CTTSnatchDelayers * s = [_CTTSnatchDelayers new]; s.snatcher = self;
+    return s;
 }
 
 - (void)hit
@@ -65,10 +63,7 @@
 - (void)respond:(NSURLProtocol*)protocol_
 {
     [self hit];
-    if(self.delayer>0) {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, self.delayer, false);
-    }
-    self.responder(protocol_);
+    self.delayer(^{self.responder(protocol_);});
 }
 
 @end

@@ -22,7 +22,7 @@
     };
 }
 
-static CTTSnatchResponder CTTSnatchResponderHTTP(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_)
+static _CTTSnatchResponder CTTSnatchResponderHTTP(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_)
 {
     return ^(NSURLProtocol * protocol) {
         NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:protocol.request.URL

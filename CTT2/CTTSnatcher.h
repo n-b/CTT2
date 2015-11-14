@@ -1,6 +1,6 @@
 @import Foundation;
 
-@class _CTTSnatchMatchers, _CTTSnatchResponders;
+@class _CTTSnatchMatchers, _CTTSnatchDelayers, _CTTSnatchResponders;
 
 @interface _CTTSnatcher : NSObject
 
@@ -8,15 +8,14 @@
 
 - (instancetype) init;
 @property (readonly) _CTTSnatchMatchers* match;
+@property (readonly) _CTTSnatchDelayers* delay;
 @property (readonly) _CTTSnatchResponders* respond;
-@property (readonly) _CTTSnatcher* (^delay)(NSTimeInterval delay_);
 @property (readonly) NSUInteger hitCount;
 
 - (void) stop;
 
 // Counter
 
-// - delay
 //- (instancetype) times:(NSUInteger)count;
 //- (instancetype) once;
 //- (instancetype) forever;
@@ -26,16 +25,16 @@
 @end
 
 
-
 @interface _CTTSnatcher ()
 
-typedef BOOL (^CTTSnatchMatcher)(NSURLRequest *);
-@property (copy) CTTSnatchMatcher matcher;
+typedef BOOL (^_CTTSnatchMatcher)(NSURLRequest *);
+@property (copy) _CTTSnatchMatcher matcher;
 
-typedef void (^CTTSnatchResponder)(NSURLProtocol*);
-@property (copy) CTTSnatchResponder responder;
+typedef void (^_CTTSnatchDelayer)(void(^)(void));
+@property (copy) _CTTSnatchDelayer delayer;
 
-@property NSTimeInterval delayer;
+typedef void (^_CTTSnatchResponder)(NSURLProtocol*);
+@property (copy) _CTTSnatchResponder responder;
 
 - (void) respond:(NSURLProtocol*)protocol_;
 @end

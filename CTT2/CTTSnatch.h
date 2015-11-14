@@ -2,6 +2,7 @@
 
 #import "CTTSnatcher.h"
 #import "CTTSnatchMatchers.h"
+#import "CTTSnatchDelayers.h"
 #import "CTTSnatchResponders.h"
 #import "CTTSnatchProtocol.h"
 #import "CTTUnitTestSnatcher.h"
