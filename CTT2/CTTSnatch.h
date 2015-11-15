@@ -6,15 +6,12 @@
 #import "CTTSnatchResponders.h"
 #import "CTTSnatchStoppers.h"
 #import "CTTSnatchProtocol.h"
-#import "CTTUnitTestSnatcher.h"
-
-#define CTTSnatcher          ([[_CTTSnatcher alloc] init])
-#define CTTUnitTestSnatcher  ([[_CTTUnitTestSnatcher alloc] initWithTest:self file:__FILE__ line:__LINE__])
+#import "CTTSnatchForXCTest.h"
 
 
 // CTT.snatch
 
-// done
+// CTTSnatchForXCTest(test)
 
 //           .match.url    ( NSString*/NSURL* )
 //                 .regexp ( NSRegularExpression*/NSString* )
@@ -27,8 +24,6 @@
 //           .delay.none    ( void )
 //                 .seconds ( NSTimeInterval delay )
 //                 .until   ( BOOL(^fulfilled_)() )
-
-// feasible
 
 //           .stop.never     ( void )
 //                .afterHits ( NSUInteger )

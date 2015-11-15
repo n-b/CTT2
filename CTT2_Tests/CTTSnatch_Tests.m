@@ -20,7 +20,7 @@ id SendDemoRequest(NSString* urlString, NSString * path) {
 
 - (void) test_demo_verifyRequestIsSent
 {
-    id snatch = CTTUnitTestSnatcher.match.url(@"http://host.com/foo");
+    id snatch = CTTSnatchForXCTest(self).match.url(@"http://host.com/foo");
     SendDemoRequest(@"http://host.com/foo", @"");
     [snatch verify];
 }
