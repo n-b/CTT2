@@ -1,6 +1,6 @@
 @import XCTest;
 
-#import "CTTSnatch.h"
+#import "CTT.h"
 
 @interface CTTSnatch_Tests : XCTestCase
 @end
@@ -14,7 +14,7 @@ id SendDemoRequest(NSString* urlString, NSString * path) {
 
 - (void) test_demo_mockResponse
 {
-    CTTUnitTestSnatcher.match.url(@"http://host.com/foo").respond.json(@{@"bar":@42});
+    CTT.snatch.stop.afterTest(self).match.url(@"http://host.com/foo").respond.json(@{@"bar":@42});
     XCTAssertEqualObjects(SendDemoRequest(@"http://host.com/foo", @"bar"), @42);
 }
 

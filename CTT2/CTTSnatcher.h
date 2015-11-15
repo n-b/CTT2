@@ -1,26 +1,17 @@
 @import Foundation;
 
-@class _CTTSnatchMatchers, _CTTSnatchDelayers, _CTTSnatchResponders;
+@class _CTTSnatchMatchers, _CTTSnatchDelayers, _CTTSnatchResponders, _CTTSnatchStoppers;
 
 @interface _CTTSnatcher : NSObject
 
-// CTTSnatch.new.match.URL(NSURL*).respond.JSON(id)
-
-- (instancetype) init;
 @property (readonly) _CTTSnatchMatchers* match;
 @property (readonly) _CTTSnatchDelayers* delay;
+@property (readonly) _CTTSnatchStoppers* stop;
 @property (readonly) _CTTSnatchResponders* respond;
+
 @property (readonly) NSUInteger hitCount;
 
-- (void) stop;
-
-// Counter
-
-//- (instancetype) times:(NSUInteger)count;
-//- (instancetype) once;
-//- (instancetype) forever;
-
-//- (instancetype) passthrough;
+- (void) stopNow;
 
 @end
 
@@ -35,6 +26,9 @@ typedef void (^_CTTSnatchDelayer)(void(^)(void));
 
 typedef void (^_CTTSnatchResponder)(NSURLProtocol*);
 @property (copy) _CTTSnatchResponder responder;
+
+typedef BOOL (^_CTTSnatchStopper)(void);
+@property (copy) _CTTSnatchStopper stopper;
 
 - (void) respond:(NSURLProtocol*)protocol_;
 @end
