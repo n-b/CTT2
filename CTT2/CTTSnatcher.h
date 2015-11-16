@@ -1,13 +1,14 @@
 @import Foundation;
 
-@class _CTTSnatchMatchers, _CTTSnatchDelayers, _CTTSnatchResponders, _CTTSnatchStoppers;
+@class _CTTSnatchMatchers, _CTTSnatchDelayers, _CTTSnatchResponders, _CTTSnatchStoppers, _CTTSnatchLoggers;
 
 @interface _CTTSnatcher : NSObject
 
 @property (readonly) _CTTSnatchMatchers* match;
 @property (readonly) _CTTSnatchDelayers* delay;
-@property (readonly) _CTTSnatchStoppers* stop;
 @property (readonly) _CTTSnatchResponders* respond;
+@property (readonly) _CTTSnatchStoppers* stop;
+@property (readonly) _CTTSnatchLoggers* log;
 
 @property (readonly) NSUInteger hitCount;
 
@@ -29,6 +30,11 @@ typedef void (^_CTTSnatchResponder)(NSURLProtocol*);
 
 typedef BOOL (^_CTTSnatchStopper)(void);
 @property (copy) _CTTSnatchStopper stopper;
+
+typedef void (^_CTTSnatchRequestLogger)(NSURLRequest*, NSUInteger tag);
+@property (copy) _CTTSnatchRequestLogger requestLogger;
+typedef void (^_CTTSnatchResponseLogger)(NSURLResponse*, NSUInteger tag);
+@property (copy) _CTTSnatchResponseLogger responseLogger;
 
 - (void) respond:(NSURLProtocol*)protocol_;
 @end

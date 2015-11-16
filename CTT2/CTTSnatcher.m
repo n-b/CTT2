@@ -4,6 +4,8 @@
 #import "CTTSnatchDelayers.h"
 #import "CTTSnatchResponders.h"
 #import "CTTSnatchStoppers.h"
+#import "CTTSnatchLoggers.h"
+
 #import "CTTSnatchProtocol.h"
 
 @interface _CTTSnatcherHelper ()
@@ -30,6 +32,7 @@
         self.delay.none();
         self.respond.nothing();
         self.stop.never();
+        self.log.none();
         [_CTTSnatchProtocol addSnatcher:self];
     }
     return self;
@@ -60,16 +63,30 @@
     return [[_CTTSnatchStoppers alloc] initWithSnatcher:self];
 }
 
+- (_CTTSnatchLoggers *)log
+{
+    return [[_CTTSnatchLoggers alloc] initWithSnatcher:self];
+}
+
 - (void)hit
 {
     ++_hitCount;
 }
 
+- (NSUInteger) counter
+{
+    static NSUInteger counter = 0;
+    return counter++;
+}
+
 - (void)respond:(NSURLProtocol*)protocol_
 {
     [self hit];
+    NSUInteger counter = [self counter];
+    self.requestLogger(protocol_.request, counter);
     self.delayer(^{
         self.responder(protocol_);
+        self.responseLogger(protocol_.response, counter);
     });
     if(self.stopper()) {
         [self stopNow];

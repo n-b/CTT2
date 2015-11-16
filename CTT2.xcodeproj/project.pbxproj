@@ -23,6 +23,8 @@
 		37608EB11BF8976200A60DB2 /* CTT.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EAF1BF8976200A60DB2 /* CTT.m */; };
 		37608EB41BF8984E00A60DB2 /* CTTSnatchStoppers.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EB31BF8984E00A60DB2 /* CTTSnatchStoppers.m */; };
 		37608EB51BF8984E00A60DB2 /* CTTSnatchStoppers.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EB31BF8984E00A60DB2 /* CTTSnatchStoppers.m */; };
+		37608EB81BF8ED2B00A60DB2 /* CTTSnatchLoggers.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EB71BF8ED2B00A60DB2 /* CTTSnatchLoggers.m */; };
+		37608EB91BF8ED2B00A60DB2 /* CTTSnatchLoggers.m in Sources */ = {isa = PBXBuildFile; fileRef = 37608EB71BF8ED2B00A60DB2 /* CTTSnatchLoggers.m */; };
 		3775D6631910FE9B001CE42A /* CTTRunLoopRunUntil.m in Sources */ = {isa = PBXBuildFile; fileRef = 3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */; };
 		3794A0431A36E8B500C296D6 /* CTTSnatch_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3794A0421A36E8B500C296D6 /* CTTSnatch_Tests.m */; };
 		37F2B05919B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 37F2B05819B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m */; };
@@ -59,6 +61,8 @@
 		37608EAF1BF8976200A60DB2 /* CTT.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTT.m; path = CTT2/CTT.m; sourceTree = "<group>"; };
 		37608EB21BF8984E00A60DB2 /* CTTSnatchStoppers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CTTSnatchStoppers.h; sourceTree = "<group>"; };
 		37608EB31BF8984E00A60DB2 /* CTTSnatchStoppers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CTTSnatchStoppers.m; sourceTree = "<group>"; };
+		37608EB61BF8ED2B00A60DB2 /* CTTSnatchLoggers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CTTSnatchLoggers.h; sourceTree = "<group>"; };
+		37608EB71BF8ED2B00A60DB2 /* CTTSnatchLoggers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CTTSnatchLoggers.m; sourceTree = "<group>"; };
 		3775D6231910FE3D001CE42A /* libCTT2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libCTT2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		3775D65A1910FE9B001CE42A /* CTTRunLoopRunUntil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CTTRunLoopRunUntil.h; path = CTT2/CTTRunLoopRunUntil.h; sourceTree = "<group>"; };
 		3775D65B1910FE9B001CE42A /* CTTRunLoopRunUntil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CTTRunLoopRunUntil.m; path = CTT2/CTTRunLoopRunUntil.m; sourceTree = "<group>"; };
@@ -100,6 +104,8 @@
 				37608EAA1BF7AD2B00A60DB2 /* CTTSnatchDelayers.m */,
 				37608EB21BF8984E00A60DB2 /* CTTSnatchStoppers.h */,
 				37608EB31BF8984E00A60DB2 /* CTTSnatchStoppers.m */,
+				37608EB61BF8ED2B00A60DB2 /* CTTSnatchLoggers.h */,
+				37608EB71BF8ED2B00A60DB2 /* CTTSnatchLoggers.m */,
 				37608E9D1BF7979500A60DB2 /* CTTSnatchProtocol.h */,
 				37608E9E1BF7979500A60DB2 /* CTTSnatchProtocol.m */,
 				37608E8D1BF795FA00A60DB2 /* CTTSnatchForXCTest.h */,
@@ -232,6 +238,7 @@
 				37608EA71BF797D000A60DB2 /* CTTSnatchMatchers.m in Sources */,
 				37608EA31BF7979500A60DB2 /* CTTSnatchResponders.m in Sources */,
 				37608E8F1BF795FA00A60DB2 /* CTTSnatchForXCTest.m in Sources */,
+				37608EB81BF8ED2B00A60DB2 /* CTTSnatchLoggers.m in Sources */,
 				37608E931BF7964800A60DB2 /* CTTSnatcher.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -240,6 +247,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37608EB91BF8ED2B00A60DB2 /* CTTSnatchLoggers.m in Sources */,
 				37F2B06119B371E60086A2D8 /* CTTRunLoopRunUntil.m in Sources */,
 				37F2B05919B371C30086A2D8 /* CTTRunLoopRunUntil_Tests.m in Sources */,
 				37608EA81BF797D000A60DB2 /* CTTSnatchMatchers.m in Sources */,

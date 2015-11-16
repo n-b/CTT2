@@ -5,6 +5,7 @@
 #import "CTTSnatchDelayers.h"
 #import "CTTSnatchResponders.h"
 #import "CTTSnatchStoppers.h"
+#import "CTTSnatchLoggers.h"
 #import "CTTSnatchProtocol.h"
 #import "CTTSnatchForXCTest.h"
 

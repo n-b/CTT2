@@ -1,11 +1,18 @@
 #import "CTTSnatchResponders.h"
 
+@interface _CTTSnatcher (Response)
+-
+@end
+
 @implementation _CTTSnatchResponders
 
 - (_CTTSnatcher *(^)(void))nothing
 {
     return ^(void){
         self.snatcher.responder = ^(NSURLProtocol * protocol) {
+            [protocol.client URLProtocol:protocol
+                      didReceiveResponse:[[NSURLResponse alloc] initWithURL:protocol.request.URL MIMEType:nil expectedContentLength:0 textEncodingName:nil]
+                      cacheStoragePolicy:NSURLCacheStorageNotAllowed];
             [protocol.client URLProtocolDidFinishLoading:protocol];
         };
         return self.snatcher;
