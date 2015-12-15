@@ -1,19 +1,13 @@
 #import "CTTSnatchResponders.h"
 
-@interface _CTTSnatcher (Response)
--
-@end
-
 @implementation _CTTSnatchResponders
 
 - (_CTTSnatcher *(^)(void))nothing
 {
     return ^(void){
-        self.snatcher.responder = ^(NSURLProtocol * protocol) {
-            [protocol.client URLProtocol:protocol
-                      didReceiveResponse:[[NSURLResponse alloc] initWithURL:protocol.request.URL MIMEType:nil expectedContentLength:0 textEncodingName:nil]
-                      cacheStoragePolicy:NSURLCacheStorageNotAllowed];
-            [protocol.client URLProtocolDidFinishLoading:protocol];
+        self.snatcher.responder = ^(NSURLRequest * request_, _CTTSnatchResponseClient * client_) {
+            [client_ sendResponse:[[NSURLResponse alloc] initWithURL:request_.URL MIMEType:nil expectedContentLength:0 textEncodingName:nil]];
+            [client_ finish];
         };
         return self.snatcher;
     };
@@ -22,37 +16,28 @@
 - (_CTTSnatcher *(^)(NSError *))error
 {
     return ^(NSError * error_){
-        self.snatcher.responder = ^(NSURLProtocol * protocol) {
-            [protocol.client URLProtocol:protocol didFailWithError:error_];
+        self.snatcher.responder = ^(NSURLRequest * request_, _CTTSnatchResponseClient * client_) {
+            [client_ failWithError:error_];
         };
         return self.snatcher;
-    };
-}
-
-static _CTTSnatchResponder CTTSnatchResponderHTTP(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_)
-{
-    return ^(NSURLProtocol * protocol) {
-        NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:protocol.request.URL
-                                                                  statusCode:statusCode_
-                                                                 HTTPVersion:@"HTTP/1.1"
-                                                                headerFields:headers_];
-        [protocol.client URLProtocol:protocol didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
-        [protocol.client URLProtocol:protocol didLoadData:data_];
-        
-        if(saveCookies_) {
-            NSArray * cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:response.allHeaderFields forURL:protocol.request.URL];
-            [NSHTTPCookieStorage.sharedHTTPCookieStorage setCookies:cookies
-                                                             forURL:protocol.request.URL
-                                                    mainDocumentURL:protocol.request.URL];
-        }
-        [protocol.client URLProtocolDidFinishLoading:protocol];
     };
 }
 
 - (_CTTSnatcher *(^)(NSInteger, NSDictionary *, NSData *, BOOL))http
 {
     return ^(NSInteger statusCode_, NSDictionary * headers_, NSData * data_, BOOL saveCookies_){
-        self.snatcher.responder = CTTSnatchResponderHTTP(statusCode_, headers_, data_,saveCookies_);
+        self.snatcher.responder = ^(NSURLRequest * request_, _CTTSnatchResponseClient * client_) {
+            NSHTTPURLResponse * response = [[NSHTTPURLResponse alloc] initWithURL:request_.URL statusCode:statusCode_ HTTPVersion:@"HTTP/1.1" headerFields:headers_];
+            
+            if(saveCookies_) {
+                NSArray * cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:response.allHeaderFields forURL:request_.URL];
+                [NSHTTPCookieStorage.sharedHTTPCookieStorage setCookies:cookies forURL:request_.URL mainDocumentURL:request_.URL];
+            }
+            
+            [client_ sendResponse:response];
+            [client_ sendData:data_];
+            [client_ finish];
+        };
         return self.snatcher;
     };
 }
@@ -62,7 +47,7 @@ static _CTTSnatchResponder CTTSnatchResponderHTTP(NSInteger statusCode_, NSDicti
     return ^(id jsonObject_) {
         NSData * data = [NSJSONSerialization dataWithJSONObject:jsonObject_ options:NSJSONWritingPrettyPrinted error:NULL];
         NSDictionary * headers = @{ @"Content-Type": @"application/json; charset=utf-8" };
-        self.snatcher.responder = CTTSnatchResponderHTTP(200, headers, data, NO);
+        self.snatcher.respond.http(200, headers, data, NO);
         return self.snatcher;
     };
 }

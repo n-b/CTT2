@@ -34,19 +34,26 @@ static NSMutableArray<_CTTSnatcher*> *CTTSnatchers;
     return nil;
 }
 
-// mandatory implementation for NSURLProtocol
-+ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request { return request; }
-- (void)stopLoading { }
-
 + (BOOL)canInitWithRequest:(NSURLRequest *)request
 {
     return [self snatcherForRequest:request]!=nil;
+}
+
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request
+{
+    // mandatory implementation for NSURLProtocol
+    return request;
 }
 
 - (void) startLoading
 {
     _CTTSnatcher * snatcher = [self.class snatcherForRequest:self.request];
     [snatcher respond:self];
+}
+
+- (void)stopLoading
+{
+    // mandatory implementation for NSURLProtocol
 }
 
 @end

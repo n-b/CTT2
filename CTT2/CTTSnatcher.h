@@ -2,6 +2,8 @@
 
 @class _CTTSnatchMatchers, _CTTSnatchDelayers, _CTTSnatchResponders, _CTTSnatchStoppers, _CTTSnatchLoggers;
 
+@class _CTTSnatchResponseClient, CTTSnatchLogger;
+
 @interface _CTTSnatcher : NSObject
 
 @property (readonly) _CTTSnatchMatchers* match;
@@ -17,24 +19,20 @@
 @end
 
 
+
 @interface _CTTSnatcher ()
 
 typedef BOOL (^_CTTSnatchMatcher)(NSURLRequest *);
-@property (copy) _CTTSnatchMatcher matcher;
-
 typedef void (^_CTTSnatchDelayer)(void(^)(void));
-@property (copy) _CTTSnatchDelayer delayer;
-
-typedef void (^_CTTSnatchResponder)(NSURLProtocol*);
-@property (copy) _CTTSnatchResponder responder;
-
+typedef void (^_CTTSnatchResponder)(NSURLRequest *, _CTTSnatchResponseClient*);
 typedef BOOL (^_CTTSnatchStopper)(void);
-@property (copy) _CTTSnatchStopper stopper;
+typedef CTTSnatchLogger* (^_CTTSnatchLogger)(NSURL*, NSUInteger);
 
-typedef void (^_CTTSnatchRequestLogger)(NSURLRequest*, NSUInteger tag);
-@property (copy) _CTTSnatchRequestLogger requestLogger;
-typedef void (^_CTTSnatchResponseLogger)(NSURLResponse*, NSUInteger tag);
-@property (copy) _CTTSnatchResponseLogger responseLogger;
+@property (copy) _CTTSnatchMatcher matcher;
+@property (copy) _CTTSnatchDelayer delayer;
+@property (copy) _CTTSnatchResponder responder;
+@property (copy) _CTTSnatchStopper stopper;
+@property (copy) _CTTSnatchLogger logger;
 
 - (void) respond:(NSURLProtocol*)protocol_;
 @end
@@ -42,4 +40,11 @@ typedef void (^_CTTSnatchResponseLogger)(NSURLResponse*, NSUInteger tag);
 
 @interface _CTTSnatcherHelper : NSObject
 @property (readonly) _CTTSnatcher * snatcher;
+@end
+
+@interface _CTTSnatchResponseClient : NSObject
+- (void) failWithError:(NSError*)error_;
+- (void) sendResponse:(NSURLResponse*)response_;
+- (void) sendData:(NSData*)data_;
+- (void) finish;
 @end

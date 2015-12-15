@@ -22,6 +22,13 @@
 }
 @end
 
+
+@interface _CTTSnatchResponseClient ()
+@property NSURLProtocol * protocol;
+@property CTTSnatchLogger * logger;
+@end
+
+
 @implementation _CTTSnatcher
 
 - (instancetype)init
@@ -43,54 +50,63 @@
     [_CTTSnatchProtocol removeSnatcher:self];
 }
 
-- (_CTTSnatchMatchers*)match
-{
-    return [[_CTTSnatchMatchers alloc] initWithSnatcher:self];
-}
-
-- (_CTTSnatchResponders *)respond
-{
-    return [[_CTTSnatchResponders alloc] initWithSnatcher:self];
-}
-
-- (_CTTSnatchDelayers *)delay
-{
-    return [[_CTTSnatchDelayers alloc] initWithSnatcher:self];
-}
-
-- (_CTTSnatchStoppers *)stop
-{
-    return [[_CTTSnatchStoppers alloc] initWithSnatcher:self];
-}
-
-- (_CTTSnatchLoggers *)log
-{
-    return [[_CTTSnatchLoggers alloc] initWithSnatcher:self];
-}
-
-- (void)hit
-{
-    ++_hitCount;
-}
-
-- (NSUInteger) counter
-{
-    static NSUInteger counter = 0;
-    return counter++;
-}
+- (_CTTSnatchMatchers*)   match   { return [[_CTTSnatchMatchers   alloc] initWithSnatcher:self]; }
+- (_CTTSnatchResponders*) respond { return [[_CTTSnatchResponders alloc] initWithSnatcher:self]; }
+- (_CTTSnatchDelayers*)   delay   { return [[_CTTSnatchDelayers   alloc] initWithSnatcher:self]; }
+- (_CTTSnatchStoppers*)   stop    { return [[_CTTSnatchStoppers   alloc] initWithSnatcher:self]; }
+- (_CTTSnatchLoggers*)    log     { return [[_CTTSnatchLoggers    alloc] initWithSnatcher:self]; }
 
 - (void)respond:(NSURLProtocol*)protocol_
 {
-    [self hit];
-    NSUInteger counter = [self counter];
-    self.requestLogger(protocol_.request, counter);
+    ++_hitCount;
+
+    _CTTSnatchResponseClient * client = [_CTTSnatchResponseClient new];
+    client.protocol = protocol_;
+    client.logger = self.logger(protocol_.request.URL,self.hitCount);
+    [client.logger logRequest:protocol_.request];
+    
     self.delayer(^{
-        self.responder(protocol_);
-        self.responseLogger(protocol_.response, counter);
+        self.responder(protocol_.request, client);
     });
     if(self.stopper()) {
         [self stopNow];
     }
+}
+
+@end
+
+@implementation _CTTSnatchResponseClient
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+    }
+    return self;
+}
+
+- (void) failWithError:(NSError*)error_
+{
+    [self.protocol.client URLProtocol:self.protocol didFailWithError:error_];
+    [self.logger logError:error_];
+}
+
+- (void) sendResponse:(NSURLResponse*)response_
+{
+    [self.protocol.client URLProtocol:self.protocol didReceiveResponse:response_ cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+    [self.logger logResponse:response_];
+}
+
+- (void) sendData:(NSData*)data_
+{
+    [self.protocol.client URLProtocol:self.protocol didLoadData:data_];
+    [self.logger logData:data_];
+}
+
+- (void) finish
+{
+    [self.protocol.client URLProtocolDidFinishLoading:self.protocol];
+    [self.logger finish];
 }
 
 @end

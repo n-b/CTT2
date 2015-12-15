@@ -25,4 +25,18 @@ id SendDemoRequest(NSString* urlString, NSString * path) {
     [snatch verify];
 }
 
+- (void) test_demo_archive
+{
+    CTT.snatch
+    .stop.afterTest(self)
+    .match.url(@"http://host.com/foo")
+    .respond.json(@{@"bar":@42})
+    .log.archive([NSProcessInfo.processInfo.environment[@"SIMULATOR_HOST_HOME"] stringByAppendingPathComponent:@"Desktop/demo"]);
+
+    SendDemoRequest(@"http://host.com/foo", @"");
+    SendDemoRequest(@"http://host.com/foo", @"");
+    SendDemoRequest(@"http://host.com/foo", @"");
+    SendDemoRequest(@"http://host.com/foo", @"");
+}
+
 @end

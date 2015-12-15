@@ -4,5 +4,15 @@
 @property (readonly) _CTTSnatcher* (^none)(void);
 @property (readonly) _CTTSnatcher* (^urls)(void);
 @property (readonly) _CTTSnatcher* (^headers)(NSString* path);
-@property (readonly) _CTTSnatcher* (^archive)(NSString* directory);
+@end
+
+@interface CTTSnatchLogger : NSObject
+- (instancetype)initWithURL:(NSURL*)url counter:(NSUInteger)counter;
+@property NSURL * url;
+@property NSUInteger counter;
+- (void)logRequest:(NSURLRequest*)request;
+- (void)logError:(NSError*)error;
+- (void)logResponse:(NSURLResponse*)response;
+- (void)logData:(NSData*)data;
+- (void)finish;
 @end
