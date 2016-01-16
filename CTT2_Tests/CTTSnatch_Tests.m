@@ -14,7 +14,11 @@ id SendDemoRequest(NSString* urlString, NSString * path) {
 
 - (void) test_demo_mockResponse
 {
-    CTT.snatch.stop.afterTest(self).match.url(@"http://host.com/foo").respond.json(@{@"bar":@42}).log.urls();
+    CTT.snatch
+    .stop.afterTest(self)
+    .match.url(@"http://host.com/foo")
+    .respond.json(@{@"bar":@42})
+    .log.urls();
     XCTAssertEqualObjects(SendDemoRequest(@"http://host.com/foo", @"bar"), @42);
 }
 
