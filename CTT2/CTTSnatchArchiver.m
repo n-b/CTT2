@@ -68,7 +68,7 @@ typedef NS_ENUM(NSUInteger, CTTSnatchArchiveDirection) {
 {
     NSString * arrow = direction_==CTTSnatchArchiveDirectionUp?@"↑":@"↓";
     NSString * summary = [self.url.absoluteString stringByReplacingOccurrencesOfString:@"/" withString:@":"];
-    NSString *name = [NSString stringWithFormat:@"%04lu-%@-%@-%@", self.counter, arrow, tag_, summary];
+    NSString *name = [NSString stringWithFormat:@"%04lu-%@-%@-%@", (unsigned long)self.counter, arrow, tag_, summary];
     return [self.directory stringByAppendingPathComponent:name];
 }
 
