@@ -38,4 +38,14 @@
     };
 }
 
+- (_CTTSnatcher *(^)(void))any
+{
+    return ^(void){
+        self.snatcher.matcher = ^(NSURLRequest * req) {
+            return YES;
+        };
+        return self.snatcher;
+    };
+}
+
 @end
