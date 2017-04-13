@@ -52,4 +52,21 @@
     };
 }
 
+- (_CTTSnatcher *(^)(id))file
+{
+    return ^(NSString *filename) {
+        NSString *path;
+        for (NSBundle *bundle in NSBundle.allBundles) {
+            path = [bundle pathForResource:filename.stringByDeletingPathExtension ofType:filename.pathExtension];
+            if (path) {
+                break;
+            }
+        }
+        
+        NSData * data = [NSData dataWithContentsOfFile:path];
+        self.snatcher.respond.http(200, @{}, data, NO);
+        return self.snatcher;
+    };
+}
+
 @end
